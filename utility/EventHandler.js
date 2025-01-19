@@ -3,7 +3,7 @@ import { Sprite } from "./Sprite"
 import { SpriteType } from "./SpriteType"
 
 /**
- * This function only triggers when a mouse clicked on the screen hitting an object's hitbox. Note that it will not trigger on sprite type of 'BACKGROUND', 'PASSABLE' and 'AIR'.
+ * This function only triggers when a mouse clicked on the screen hitting an object's hitbox. It will also return the position of the mouse within the CanvasScreen
  * @param {MouseEvent} event 
  * @param {CanvasScreen} screen
  * @param {Function} callback
@@ -24,11 +24,11 @@ export function HandleScreenClickedEvent(event, screen){
             mousePosition
         }
         if(InHitbox(sprite, mousePosition)){
-            if(sprite.type === SpriteType.AIR || sprite.type === SpriteType.BACKGROUND || sprite.type === SpriteType.PASSABLE) return;
             ObjectClicked.spriteId = sprite.objID;
             ObjectClicked.type = sprite.type
-            screen.onCanvasClickedEvent(ObjectClicked);
         }
+        
+        screen.onCanvasClickedEvent(ObjectClicked);
     })
 }
 

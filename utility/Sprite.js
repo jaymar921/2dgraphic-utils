@@ -61,12 +61,6 @@ export class Sprite{
 
     draw(context){
         if(!this.loaded) return;
-        const cropBox = {
-            x: this.width * this.currentFrame,
-            y: 0,
-            witdh: this.width
-        }
-
         context.imageSmoothingEnabled = this.imageSmoothingEnabled;
         context.drawImage(
             this.image, 
