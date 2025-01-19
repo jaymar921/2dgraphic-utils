@@ -5,6 +5,23 @@ import { SpriteType } from "./SpriteType";
  * will be used by the canvas screen as an object to render in animation
  */
 export class Sprite{
+    /**
+     * 
+     * @param {Object} param0 Sprite Properties
+     * @param {string} param0.objID Name of the sprite object
+     * @param {Number} param0.posX X position of Sprite in CanvasScreen
+     * @param {Number} param0.posY Y position of Sprite in CanvasScreen
+     * @param {Number} param0.width Width of the Sprite | will be used in hitbox
+     * @param {Number} param0.height Height of the Sprite | will be used in hitbox
+     * @param {string} param0.imageSource Image Source
+     * @param {Number} param0.frames Total number of frames in the sprite image, default: 1
+     * @param {Number} param0.frameBuffer Delay of current frame to next frame, default: 3
+     * @param {Boolean} param0.loop Loop the sprite frames, default: true
+     * @param {Boolean} param0.autoPlay Play the animation once the object is rendered, default: true
+     * @param {Number} param0.scale Scale of image, default: 1
+     * @param {Boolean} param0.imageSmoothingEnabled Render smooth image (not good on lower resolution images), default: false
+     * @param {SpriteType} param0.type Type of object that classifies this sprite
+     */
     constructor({objID, posX, posY, width, height, imageSource, animations, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
         this.objID = objID;
         this.posX = posX;
@@ -31,7 +48,7 @@ export class Sprite{
         this.autoPlay = autoPlay;
         this.currentAnimation;
         this.scale = scale;
-        this.imageSmoothingEnabled = false;
+        this.imageSmoothingEnabled = imageSmoothingEnabled;
 
         if(this.animations){
             for(let key in this.animations){
