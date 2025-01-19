@@ -1,0 +1,66 @@
+import { Sprite } from "./Sprite";
+
+export class CanvasScreen{
+    static context;
+    static screen;
+    static animationId = 0;
+    /**
+     * 
+     * @param {string} canvasId ID of the canvas element
+     * @param {Number} width Custom width of the canvas screen | default: 640px
+     * @param {Number} height Custom height of the canvas screen | default: 360px
+     * @param {string} background Set the background style of the canvas element | default: 'black'
+     */
+    constructor(canvasId, width = 640, height = 360, background = "black"){
+        const canvEl = document.getElementById(canvasId);
+
+        // throw error if the canvas element requirement was not met
+        if(!canvEl) throw new Error(`Couldn't find an element with an ID '${canvasId}'...`);
+        if(!canvEl.tagName.toLocaleLowerCase().includes("canvas")) throw new Error(`Element with ID '${canvasId}' should be a canvas element...`);
+
+        canvEl.style.background = background;
+
+        if(width && height){
+            canvEl.width = width;
+            canvEl.height = height;
+        }
+
+        CanvasScreen.context = canvEl.getContext('2d');
+        CanvasScreen.screen = this;
+        this.canvasObjects = [];
+
+        CanvasScreen.animate(this);
+    }
+
+    /**
+     * 
+     * @param {Sprite} obj A sprite object to render on screen
+     */
+    registerObject(obj){
+        this.canvasObjects.push(obj);
+    }
+
+    unregisterObject(objectId){
+        const newArr = this.canvasObjects.filter(o => o.objID !== objectId);
+        this.canvasObjects = newArr;
+    }
+
+    static animate(){
+        CanvasScreen.animationId = requestAnimationFrame(CanvasScreen.animate);
+        
+        if(!CanvasScreen.context) return;
+        if(!CanvasScreen.screen) return;
+
+        const screen = CanvasScreen.screen;
+        const context = CanvasScreen.context;
+
+        // clear the whole screen
+        context.clearRect(0, 0, screen.width, screen.height);
+
+        // render the sprites
+        const canvasObjects = screen.canvasObjects;
+        canvasObjects.forEach(obj => {
+            obj.draw(context);
+        })
+    }
+}
