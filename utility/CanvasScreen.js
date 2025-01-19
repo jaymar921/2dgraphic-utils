@@ -1,3 +1,4 @@
+import { HandleScreenClickedEvent } from "./EventHandler";
 import { Sprite } from "./Sprite";
 
 export class CanvasScreen{
@@ -31,6 +32,9 @@ export class CanvasScreen{
         CanvasScreen.screen = this;
         this.canvasObjects = [];
 
+        // Event Handler
+        canvEl.addEventListener('click', (e)=>HandleScreenClickedEvent(e, this));
+
         CanvasScreen.animate(this);
     }
 
@@ -42,9 +46,21 @@ export class CanvasScreen{
         this.canvasObjects.push(obj);
     }
 
+    /**
+     * 
+     * @param {string} objectId Remove a sprite object that is rendered on screen
+     */
     unregisterObject(objectId){
         const newArr = this.canvasObjects.filter(o => o.objID !== objectId);
         this.canvasObjects = newArr;
+    }
+
+    /**
+     * This triggers a callback function that can be used when a mouse cursor clicked on an object's hitbox inside the CanvasScreen (Basically an interaction). Note that this callback function will not trigger if the sprite is on type 'BACKGROUND', 'PASSABLE' and 'AIR'.
+     * @param {Function} callback 
+     */
+    handleScreenClickedEvent(callback){
+        this.onCanvasClickedEvent = callback;
     }
 
     static animate(){
