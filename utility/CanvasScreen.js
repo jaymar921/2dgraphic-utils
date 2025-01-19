@@ -19,6 +19,8 @@ export class CanvasScreen{
         if(!canvEl.tagName.toLocaleLowerCase().includes("canvas")) throw new Error(`Element with ID '${canvasId}' should be a canvas element...`);
 
         canvEl.style.background = background;
+        this.width = width;
+        this.height = height;
 
         if(width && height){
             canvEl.width = width;
