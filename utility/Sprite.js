@@ -8,7 +8,8 @@ export class Sprite{
     /**
      * 
      * @param {Object} param0 Sprite Properties
-     * @param {string} param0.objID Name of the sprite object
+     * @param {string} param0.objID Unique Identifier of the Sprite Object
+     * @param {string} param0.name Name for the Sprite Object
      * @param {Number} param0.posX X position of Sprite in CanvasScreen
      * @param {Number} param0.posY Y position of Sprite in CanvasScreen
      * @param {Number} param0.width Width of the Sprite | will be used in hitbox
@@ -22,13 +23,14 @@ export class Sprite{
      * @param {Boolean} param0.imageSmoothingEnabled Render smooth image (not good on lower resolution images), default: false
      * @param {SpriteType} param0.type Type of object that classifies this sprite
      */
-    constructor({objID, posX, posY, width, height, imageSource, animations, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
+    constructor({objID, name, posX, posY, width, height, imageSource, animations, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
         this.objID = objID;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
         this.height = height;
         this.type = type;
+        this.name = name;
 
         this.image = new Image();
         this.image.onload = () => {
