@@ -1,10 +1,12 @@
-import { HandleScreenClickedEvent } from "./EventHandler";
+import { HandleCameraMovement, HandleScreenClickedEvent } from "./EventHandler";
+import { sleep } from "./HandlerUtils";
 import { Sprite } from "./Sprite";
 
 export class CanvasScreen{
     static context;
     static screen;
     static animationId = 0;
+    static screenMoving;
     /**
      * 
      * @param {string} canvasId ID of the canvas element
@@ -34,6 +36,7 @@ export class CanvasScreen{
 
         // Event Handler
         canvEl.addEventListener('click', (e)=>HandleScreenClickedEvent(e, this));
+        HandleCameraMovement(canvEl, this);
 
         CanvasScreen.animate(this);
     }
@@ -74,6 +77,10 @@ export class CanvasScreen{
         this.onCanvasClickedEvent = callback;
     }
 
+    enableScreenDrag(arg){
+        this.captureCameraMovement = arg;
+    }
+
     static animate(){
         CanvasScreen.animationId = requestAnimationFrame(CanvasScreen.animate);
         
@@ -86,10 +93,10 @@ export class CanvasScreen{
         // clear the whole screen
         context.clearRect(0, 0, screen.width, screen.height);
 
-        // render the sprites
+        //render the sprites
         const canvasObjects = screen.canvasObjects;
-        canvasObjects.forEach(obj => {
+        for(const obj of canvasObjects){
             obj.draw(context);
-        })
+        }
     }
 }
