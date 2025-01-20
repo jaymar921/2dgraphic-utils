@@ -19,12 +19,12 @@ export function HandleScreenClickedEvent(event, screen){
     //alert(`position { x: ${mousePosition.x}, y: ${mousePosition.y} }`)
     screen.canvasObjects.forEach(sprite => {
         const ObjectClicked = {
-            spriteId: null,
+            objID: null,
             type: SpriteType.AIR,
             mousePosition
         }
         if(InHitbox(sprite, mousePosition)){
-            ObjectClicked.spriteId = sprite.objID;
+            ObjectClicked.objID = sprite.objID;
             ObjectClicked.type = sprite.type
         }
         
