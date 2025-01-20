@@ -13,7 +13,6 @@ export function HandleScreenClickedEvent(event, screen){
     // check if callback function is not null
     if(!screen.onCanvasClickedEvent) return;
     if(screen.dragging) return;
-    console.log("clicked")
     // grab the clicked position
     const mousePosition = {
         x: event.offsetX,
