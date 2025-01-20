@@ -7,5 +7,7 @@ export const SpriteType = {
     BACKGROUND: 'Background',
     FLUID: 'Fluid',
     PASSABLE: 'Passable',
+    ITEM: 'Item',
+    BLOCK: 'Block',
     AIR: 'Air'
 }
