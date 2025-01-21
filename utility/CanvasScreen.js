@@ -77,6 +77,10 @@ export class CanvasScreen{
         this.onCanvasClickedEvent = callback;
     }
 
+    /**
+     * Enable Camera Movement using mouse drag
+     * @param {boolean} arg 
+     */
     enableScreenDrag(arg){
         this.captureCameraMovement = arg;
     }
