@@ -127,7 +127,7 @@ const playerSprite = new Sprite({
   width: 32,
   height: 32,
   imageSource: "player-sprite.png", // Path to your image
-  type: SpriteType.PLAYER, // Classify this Sprite object to a type "Player" | default: "Object,
+  type: SpriteType.PLAYER, // Classify this Sprite object to a type "Player" | default: "Object"
   scale: 1,
 });
 
@@ -153,6 +153,22 @@ canvas.handleScreenClickedEvent((e) => {
 
 ```javascript
 canvas.enableScreenDrag(true); // Allow camera movement by dragging the canvas
+```
+
+### Example 4: Canvas Rendered Objects
+
+```javascript
+// To keep track of all registered objects inside the canvas, you can call the getAllRegisteredObjects() function
+
+const registeredObjects = canvas.getAllRegisteredObjects(); // Array of Sprites
+
+// registeredObjects is passed by reference, you can alter the object's property and it will show the effect on screen. Example is by changing the sprite's posX and posY.
+
+// To remove a sprite from being rendered inside the canvas, you can unregister the object by given objID
+canvas.unregisterObject("player-1"); // Instant effect
+
+// Get a single registered object by objID given.
+const registeredObject = canvas.getRegisteredObject("sprite-id");
 ```
 
 ### Live Demo: Basic Implementation of the CanvasScreen
