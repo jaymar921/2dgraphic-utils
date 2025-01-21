@@ -70,6 +70,14 @@ export class CanvasScreen{
     }
 
     /**
+     * Returns a list of registered sprite objects that was rendered on screen
+     * @returns {Array<Sprite>}
+     */
+    getAllRegisteredObjects(){
+        return this.canvasObjects;
+    }
+
+    /**
      * This triggers a callback function that can be used when a mouse cursor clicked on an object's hitbox inside the CanvasScreen (Basically an interaction). It will also return the position of the mouse in the CanvasScreen.
      * @param {Function} callback 
      */
