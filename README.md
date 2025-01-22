@@ -115,7 +115,7 @@ npm install @jaymar921/2dgraphic-utils
 
 ```javascript
 import { CanvasScreen } from "@jaymar921/2dgraphic-utils";
-import { Sprite } from "@jaymar921/2dgraphic-utils";
+import { Sprite, SpriteType } from "@jaymar921/2dgraphic-utils";
 
 const canvas = new CanvasScreen("myCanvas"); // Assuming there's a <canvas id="myCanvas"></canvas> in the HTML
 
@@ -170,6 +170,169 @@ canvas.unregisterObject("player-1"); // Instant effect
 // Get a single registered object by objID given.
 const registeredObject = canvas.getRegisteredObject("sprite-id");
 ```
+
+### Example 5: React Implementation with custom hook
+
+<details>
+<summary>useCanvas.js</summary>
+
+Copy the code below if you're trying to implement this code in reactJS
+
+```javascript
+// useCanvas.js
+import { CanvasScreen, Sprite } from "@jaymar921/2dgraphic-utils";
+import { useEffect, useState } from "react";
+
+/**
+ *
+ * @param {string} canvasId
+ * @param {Number} width
+ * @param {Number} height
+ * @param {string} background
+ */
+export function useCanvas(
+  canvasId = "my-canvas",
+  width,
+  height,
+  background = "black"
+) {
+  const [canvas, setCanvas] = useState();
+
+  useEffect(() => {
+    const canvas = new CanvasScreen(canvasId, width, height, background);
+    setCanvas(canvas);
+  }, [canvasId, background]);
+
+  /**
+   * Enable Camera Movement using mouse drag
+   * @param {boolean} arg
+   */
+  function enableScreenDrag(bool) {
+    if (!canvas) return;
+    canvas.enableScreenDrag(bool);
+  }
+
+  /**
+   * This triggers a callback function that can be used when a mouse cursor clicked on an object's hitbox inside the CanvasScreen (Basically an interaction). It will also return the position of the mouse in the CanvasScreen.
+   * @param {Function} callback
+   */
+  function handleScreenClickedEvent(callbackFunc) {
+    if (!canvas) return;
+    canvas.handleScreenClickedEvent(callbackFunc);
+  }
+
+  /**
+   *
+   * @param {Sprite} obj A sprite object to render on screen
+   */
+  function registerObject(sprite) {
+    if (!canvas) return;
+    canvas.registerObject(sprite);
+  }
+
+  /**
+   *
+   * @param {string} objectId Remove a sprite object that is rendered on screen
+   */
+  function unregisterObject(objectId) {
+    if (!canvas) return;
+    canvas.unregisterObject(objectId);
+  }
+
+  /**
+   *
+   * @param {string} objectId Get a sprite object that is rendered on screen
+   * @returns {Sprite | null}
+   */
+  function getRegisteredObject(objectId) {
+    if (!canvas) return;
+    canvas.getRegisteredObject(objectId);
+  }
+
+  /**
+   * Returns a list of registered sprite objects that was rendered on screen
+   * @returns {Array<Sprite>}
+   */
+  function getAllRegisteredObjects() {
+    if (!canvas) return;
+    canvas.getAllRegisteredObjects();
+  }
+
+  return {
+    registerObject,
+    unregisterObject,
+    handleScreenClickedEvent,
+    enableScreenDrag,
+    getRegisteredObject,
+    getAllRegisteredObjects,
+  };
+}
+```
+
+</details>
+
+<details>
+<summary>App.jsx</summary>
+
+```javascript
+import { useEffect } from "react";
+import "./App.css";
+import { useCanvas } from "./hooks/useCanvas";
+import { Sprite } from "@jaymar921/2dgraphic-utils";
+
+function App() {
+  // initialize the useCanvas hook
+  const canvasScreen = useCanvas("canvas-screen", 300, 300, "blue");
+
+  // do something when user clicks anywhere inside the canvas
+  function handleClick(clickEvent) {
+    console.log(clickEvent);
+  }
+
+  useEffect(() => {
+    // enable screen drag
+    canvasScreen.enableScreenDrag(true);
+    // invoke the handleClick
+    canvasScreen.handleScreenClickedEvent(handleClick);
+
+    // create a Sprite Object
+    const spr1 = new Sprite({
+      objID: "spr1",
+      name: "sprite 1",
+      posX: 150,
+      posY: 150,
+      imageSource: "path-to-sprite-img",
+      scale: 3,
+    });
+
+    // render 'spr1' on the CanvasScreen
+    canvasScreen.registerObject(spr1);
+  }, [canvasScreen]);
+
+  return (
+    <>
+      <div className="content-center h-screen">
+        <canvas className="m-auto" id="canvas-screen"></canvas>
+      </div>
+    </>
+  );
+}
+```
+
+</details>
+
+<details>
+<summary>main.jsx</summary>
+
+```javascript
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(<App />);
+```
+
+</details>
 
 ### Live Demo: Basic Implementation of the CanvasScreen
 
