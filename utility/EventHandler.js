@@ -18,20 +18,24 @@ export function HandleScreenClickedEvent(event, screen){
         x: event.offsetX,
         y: event.offsetY
     }
-    //alert(`position { x: ${mousePosition.x}, y: ${mousePosition.y} }`)
+
+    const ObjectClicked = {
+        objID: null,
+        type: SpriteType.AIR,
+        mousePosition,
+        sprite: null
+    }
+
     screen.canvasObjects.forEach(sprite => {
-        const ObjectClicked = {
-            objID: null,
-            type: SpriteType.AIR,
-            mousePosition
-        }
         if(InHitbox(sprite, mousePosition)){
             ObjectClicked.objID = sprite.objID;
-            ObjectClicked.type = sprite.type
+            ObjectClicked.type = sprite.type;
+            const { posX, posY, name, width, height } = sprite;
+            ObjectClicked.sprite = { posX, posY, name, width, height };
         }
-        
-        screen.onCanvasClickedEvent(ObjectClicked);
     })
+    
+    screen.onCanvasClickedEvent(ObjectClicked);
 }
 
 /**

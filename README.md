@@ -142,6 +142,7 @@ canvas.handleScreenClickedEvent((e) => {
   const spriteType = e.type; // The SpriteType of the clicked Sprite | default: SpriteType.AIR
   const mouseX = e.mousePosition.x; // The offsetX of the mouse cursor
   const mouseY = e.mousePosition.y; // The offsetY of the mouse cursor
+  const sprite = e.sprite; // More details about the clicked sprite object
 
   console.log(`Mouse clicked at position: (${mouseX}, ${mouseY})`);
 
