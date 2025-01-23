@@ -28,6 +28,7 @@ npm install @jaymar921/2dgraphic-utils
 | `getRegisteredObject(objID)`                       | Retrieves a `Sprite` object by its `objID`. Returns `null` if not found.                                                                                                       |
 | `handleScreenClickedEvent(callbackFunc)`           | Registers a callback function to be triggered when the screen is clicked or touched.                                                                                           |
 | `enableScreenDrag(arg)`                            | Enables or disables dragging (panning) of the canvas using mouse events.                                                                                                       |
+| `getCameraOffset()`                                | Returns the `x` and `y` offset coordinates of the canvas camera                                                                                                                |
 | `static animate()`                                 | Responsible for continuously updating the canvas by clearing the screen and redrawing all registered sprites. This function runs on each frame to animate objects.             |
 
 ### CanvasScreen Class: Detailed Explanation
@@ -76,11 +77,11 @@ npm install @jaymar921/2dgraphic-utils
 
 - Creates a new sprite, loading an image and setting its properties such as position, size, animation settings, etc. The sprite can be an animated object or just a static image.
 
-#### `draw(context)`
+#### `draw(context, offset)`
 
 - Renders the sprite on the canvas at its current position. If the sprite has animations, it will draw the current frame of the animation.
 
-#### `update(context)`
+#### `update(context, offset)`
 
 - Calls `draw()` to update the sprite's rendering on the canvas.
 
@@ -205,6 +206,14 @@ export function useCanvas(
   }, [canvasId, background]);
 
   /**
+   * Returns the camera offset of the canvas screen
+   * @returns {{x: Number, y: Number}}
+   */
+  function getCameraOffset() {
+    return CanvasScreen.cameraOffset;
+  }
+
+  /**
    * Enable Camera Movement using mouse drag
    * @param {boolean} arg
    */
@@ -266,6 +275,7 @@ export function useCanvas(
     enableScreenDrag,
     getRegisteredObject,
     getAllRegisteredObjects,
+    getCameraOffset,
   };
 }
 ```
