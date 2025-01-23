@@ -15,8 +15,8 @@ export function HandleScreenClickedEvent(event, screen){
     if(screen.dragging) return;
     // grab the clicked position
     const mousePosition = {
-        x: event.offsetX,
-        y: event.offsetY
+        x: event.offsetX + CanvasScreen.cameraOffset.x,
+        y: event.offsetY + CanvasScreen.cameraOffset.y
     }
 
     const ObjectClicked = {
@@ -44,9 +44,9 @@ export function HandleScreenClickedEvent(event, screen){
  * @param {{x: Number, y: Number}} mousePosition 
  */
 function InHitbox(sprite, mousePosition){
-    const minX = sprite.posX;
+    const minX = sprite.posX - CanvasScreen.cameraOffset.x;
     const maxX = minX + sprite.width * sprite.scale;
-    const minY = sprite.posY;
+    const minY = sprite.posY - CanvasScreen.cameraOffset.y;
     const maxY = minY + sprite.height * sprite.scale;
 
     const x = mousePosition.x;
@@ -61,126 +61,72 @@ function InHitbox(sprite, mousePosition){
  * @param {HTMLElement} canvasElement 
  * @param {CanvasScreen} screen
  */
-export function HandleCameraMovement(canvasElement, screen){
-    let mousePos = { x: 0, y: 0 };
+/**
+ * 
+ * @param {HTMLElement} canvasElement 
+ * @param {CanvasScreen} screen
+ */
+export function HandleCameraMovement(canvasElement, screen) {
     let initialMousePos = { x: 0, y: 0 };
-    let initialObjectPositions = [];
+    let dragging = false;
 
-    // For touch events, we will use the first touch point (index 0).
-    const getTouchPosition = (e) => {
+    // Mouse events
+    canvasElement.addEventListener("mousedown", (e) => {
+        if (!screen.captureCameraMovement) return;
+
+        dragging = true;
+        initialMousePos = { x: e.offsetX, y: e.offsetY };
+    });
+
+    canvasElement.addEventListener("mousemove", (e) => {
+        if (!screen.captureCameraMovement || !dragging) return;
+
+        const deltaX = e.offsetX - initialMousePos.x;
+        const deltaY = e.offsetY - initialMousePos.y;
+
+        CanvasScreen.cameraOffset.x -= deltaX;
+        CanvasScreen.cameraOffset.y -= deltaY;
+
+        initialMousePos = { x: e.offsetX, y: e.offsetY };
+    });
+
+    canvasElement.addEventListener("mouseup", () => {
+        dragging = false;
+    });
+
+    canvasElement.addEventListener("mouseleave", () => {
+        dragging = false;
+    });
+
+    // Touch events
+    canvasElement.addEventListener("touchstart", (e) => {
+        if (!screen.captureCameraMovement) return;
+
         const touch = e.touches[0];
-        return { x: touch.clientX, y: touch.clientY };
-    };
+        initialMousePos = { x: touch.clientX, y: touch.clientY };
+        dragging = true;
+    }, { passive: true });
 
-    // Handle mouse events
-    canvasElement.addEventListener('mousedown', async (e) => {
-        if (!screen.captureCameraMovement) return;
-        await sleep(100);
+    canvasElement.addEventListener("touchmove", (e) => {
+        if (!screen.captureCameraMovement || !dragging) return;
 
-        screen.dragging = true;
-        mousePos.x = e.offsetX;
-        mousePos.y = e.offsetY;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - initialMousePos.x;
+        const deltaY = touch.clientY - initialMousePos.y;
 
-        initialMousePos.x = mousePos.x;
-        initialMousePos.y = mousePos.y;
-        
-        // store the objects position
-        initialObjectPositions = screen.canvasObjects.map(obj => ({
-            objID: obj.objID,
-            x: obj.posX,
-            y: obj.posY
-        }));
-    });
+        CanvasScreen.cameraOffset.x -= deltaX;
+        CanvasScreen.cameraOffset.y -= deltaY;
 
-    canvasElement.addEventListener('mouseup', async (e) => {
-        if (!screen.captureCameraMovement) return;
-        await sleep(100);
+        initialMousePos = { x: touch.clientX, y: touch.clientY };
 
-        CanvasScreen.screenMoving = false;
-        screen.dragging = false;
-        initialObjectPositions = [];
-    });
-
-    canvasElement.addEventListener('mousemove', async e => {
-        if (!screen.captureCameraMovement || !screen.dragging) return;
-        CanvasScreen.screenMoving = true;
-
-        const { offsetX, offsetY } = e;
-
-        const deltaX = offsetX - initialMousePos.x;
-        const deltaY = offsetY - initialMousePos.y;
-
-        // Update object positions based on the delta
-        for (let i = 0; i < screen.canvasObjects.length; i++) {
-            const obj = screen.canvasObjects[i];
-            const initialPos = initialObjectPositions.find(o => o.objID === obj.objID);
-            
-            if (initialPos) {
-                // Move the object by the calculated delta
-                obj.posX = initialPos.x + deltaX;
-                obj.posY = initialPos.y + deltaY;
-            }
-        }
-    });
-
-    // Handle touch events for mobile support
-    canvasElement.addEventListener('touchstart', async (e) => {
-        if (!screen.captureCameraMovement) return;
-        await sleep(100);
-
-        screen.dragging = true;
-        const touchPos = getTouchPosition(e);
-        mousePos.x = touchPos.x;
-        mousePos.y = touchPos.y;
-
-        initialMousePos.x = mousePos.x;
-        initialMousePos.y = mousePos.y;
-
-        // store the objects position
-        initialObjectPositions = screen.canvasObjects.map(obj => ({
-            objID: obj.objID,
-            x: obj.posX,
-            y: obj.posY
-        }));
-        
-        // Prevent default touch behavior (e.g., scrolling)
         e.preventDefault();
-    });
+    }, { passive: false });
 
-    canvasElement.addEventListener('touchend', async (e) => {
-        if (!screen.captureCameraMovement) return;
-        await sleep(100);
+    canvasElement.addEventListener("touchend", () => {
+        dragging = false;
+    }, { passive: true });
 
-        CanvasScreen.screenMoving = false;
-        screen.dragging = false;
-        initialObjectPositions = [];
-
-        // Prevent default touch behavior (e.g., scrolling)
-        e.preventDefault();
-    });
-
-    canvasElement.addEventListener('touchmove', async e => {
-        if (!screen.captureCameraMovement || !screen.dragging) return;
-        CanvasScreen.screenMoving = true;
-
-        const touchPos = getTouchPosition(e);
-
-        const deltaX = touchPos.x - initialMousePos.x;
-        const deltaY = touchPos.y - initialMousePos.y;
-
-        // Update object positions based on the delta
-        for (let i = 0; i < screen.canvasObjects.length; i++) {
-            const obj = screen.canvasObjects[i];
-            const initialPos = initialObjectPositions.find(o => o.objID === obj.objID);
-            
-            if (initialPos) {
-                // Move the object by the calculated delta
-                obj.posX = initialPos.x + deltaX;
-                obj.posY = initialPos.y + deltaY;
-            }
-        }
-
-        // Prevent default touch behavior (e.g., scrolling)
-        e.preventDefault();
-    });
+    canvasElement.addEventListener("touchcancel", () => {
+        dragging = false;
+    }, { passive: true });
 }

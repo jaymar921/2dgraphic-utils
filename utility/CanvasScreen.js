@@ -1,5 +1,4 @@
 import { HandleCameraMovement, HandleScreenClickedEvent } from "./EventHandler";
-import { sleep } from "./HandlerUtils";
 import { Sprite } from "./Sprite";
 
 export class CanvasScreen{
@@ -7,6 +6,7 @@ export class CanvasScreen{
     static screen;
     static animationId = 0;
     static screenMoving;
+    static cameraOffset = { x: 0, y: 0 }; // Camera offset for screen movement
     /**
      * 
      * @param {string} canvasId ID of the canvas element
@@ -87,28 +87,40 @@ export class CanvasScreen{
 
     /**
      * Enable Camera Movement using mouse drag
-     * @param {boolean} arg 
+     * @param {boolean} bool 
      */
-    enableScreenDrag(arg){
-        this.captureCameraMovement = arg;
+    enableScreenDrag(bool){
+        this.captureCameraMovement = bool;
     }
 
-    static animate(){
+    static animate() {
+        const fps = 60;
+        const frameInterval = 1000 / fps;
+        const now = performance.now();
+
+        if (now - CanvasScreen.lastFrameTime < frameInterval) {
+            requestAnimationFrame(CanvasScreen.animate);
+            return;
+        }
+
+        CanvasScreen.lastFrameTime = now;
         CanvasScreen.animationId = requestAnimationFrame(CanvasScreen.animate);
-        
-        if(!CanvasScreen.context) return;
-        if(!CanvasScreen.screen) return;
+
+        if (!CanvasScreen.context) return;
+        if (!CanvasScreen.screen) return;
 
         const screen = CanvasScreen.screen;
         const context = CanvasScreen.context;
+        const offset = CanvasScreen.cameraOffset;
 
-        // clear the whole screen
         context.clearRect(0, 0, screen.width, screen.height);
 
-        //render the sprites
         const canvasObjects = screen.canvasObjects;
-        for(const obj of canvasObjects){
-            obj.draw(context);
+        for (const obj of canvasObjects) {
+            obj.draw(context, offset);
         }
+
+
+        context.restore();
     }
 }

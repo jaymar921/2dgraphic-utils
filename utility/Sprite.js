@@ -61,7 +61,7 @@ export class Sprite{
         }
     }
 
-    draw(context){
+    draw(context, offset){
         if(!this.loaded) return;
         context.imageSmoothingEnabled = this.imageSmoothingEnabled;
         context.drawImage(
@@ -70,8 +70,8 @@ export class Sprite{
             0,
             this.width,
             this.height,
-            this.posX,
-            this.posY,
+            this.posX - offset.x,
+            this.posY - offset.y,
             this.width*this.scale,
             this.height*this.scale
         );
@@ -79,8 +79,8 @@ export class Sprite{
         this.updateFrames();
     }
 
-    update(context){
-        this.draw(context);
+    update(context, offset){
+        this.draw(context, offset);
     }
 
     play(){
