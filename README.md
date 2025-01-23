@@ -150,11 +150,11 @@ canvas.registerObject(playerSprite); // It will automatically render the playerS
 
 ```javascript
 canvas.handleScreenClickedEvent((e) => {
-  const objID = e.objID; // objID of the Sprite that was clicked or touched
-  const spriteType = e.type; // The SpriteType of the clicked Sprite | default: SpriteType.AIR
+  const objID = e.objID; // objID of the top-most sprite that was clicked or touched
+  const spriteType = e.type; // The SpriteType of the clicked top-most sprite | default: SpriteType.AIR
   const mouseX = e.mousePosition.x; // The offsetX of the mouse cursor
   const mouseY = e.mousePosition.y; // The offsetY of the mouse cursor
-  const sprite = e.sprite; // More details about the clicked sprite object
+  const layers = e.layers; // Array of sprites within the clicked position
 
   console.log(`Mouse clicked at position: (${mouseX}, ${mouseY})`);
 
