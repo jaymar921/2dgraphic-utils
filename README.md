@@ -27,8 +27,9 @@ npm install @jaymar921/2dgraphic-utils
 | `unregisterObject(objID)`                          | Removes a `Sprite` object from the screen by its `objID`.                                                                                                                      |
 | `getRegisteredObject(objID)`                       | Retrieves a `Sprite` object by its `objID`. Returns `null` if not found.                                                                                                       |
 | `handleScreenClickedEvent(callbackFunc)`           | Registers a callback function to be triggered when the screen is clicked or touched.                                                                                           |
-| `enableScreenDrag(arg)`                            | Enables or disables dragging (panning) of the canvas using mouse events.                                                                                                       |
+| `enableScreenDrag(bool)`                           | Enables or disables dragging (panning) of the canvas using mouse events.                                                                                                       |
 | `getCameraOffset()`                                | Returns the `x` and `y` offset coordinates of the canvas camera                                                                                                                |
+| `setCameraOffset(x, y)`                            | Update the camera position by the given `x` and `y` coordinates                                                                                                                |
 | `static animate()`                                 | Responsible for continuously updating the canvas by clearing the screen and redrawing all registered sprites. This function runs on each frame to animate objects.             |
 
 ### CanvasScreen Class: Detailed Explanation
@@ -36,6 +37,14 @@ npm install @jaymar921/2dgraphic-utils
 #### Constructor (`constructor`)
 
 - Initializes a new `CanvasScreen` object by binding to an existing canvas element. If no canvas is found, it throws an error. It also accepts width, height, and background color, setting default values if not provided.
+
+#### `getCameraOffset()`
+
+- Returns the current camera position, this will be updated if `enableScreenDrag` is enabled.
+
+#### `setCameraOffset(x, y)`
+
+- Update the position of the canvas screen camera based on `x` and `y` arguments provided.
 
 #### `registerObject(spriteObj)`
 
@@ -53,7 +62,7 @@ npm install @jaymar921/2dgraphic-utils
 
 - Registers a callback to handle click or touch events. The callback receives the event and the current `CanvasScreen` object as arguments.
 
-#### `enableScreenDrag(arg)`
+#### `enableScreenDrag(bool)`
 
 - Enables or disables the ability to drag (move) the canvas. This could be used for creating a "camera" movement effect.
 
@@ -119,6 +128,8 @@ import { CanvasScreen } from "@jaymar921/2dgraphic-utils";
 import { Sprite, SpriteType } from "@jaymar921/2dgraphic-utils";
 
 const canvas = new CanvasScreen("myCanvas"); // Assuming there's a <canvas id="myCanvas"></canvas> in the HTML
+
+canvas.setCameraOffset(5, 5); // Customize the camera position | default: x-0, y-0
 
 const playerSprite = new Sprite({
   objID: "player1",
@@ -214,6 +225,18 @@ export function useCanvas(
   }
 
   /**
+   * Set the x and y offset of the canvas screen camera
+   * @param {Number} x
+   * @param {Number} y
+   */
+  function setCameraOffset(x = 0, y = 0) {
+    CanvasScreen.cameraOffset = {
+      x,
+      y,
+    };
+  }
+
+  /**
    * Enable Camera Movement using mouse drag
    * @param {boolean} arg
    */
@@ -276,6 +299,7 @@ export function useCanvas(
     getRegisteredObject,
     getAllRegisteredObjects,
     getCameraOffset,
+    setCameraOffset,
   };
 }
 ```
