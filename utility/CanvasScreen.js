@@ -42,6 +42,14 @@ export class CanvasScreen{
     }
 
     /**
+     * Returns the camera offset of the canvas screen
+     * @returns {{x: Number, y: Number}}
+     */
+    getCameraOffset(){
+        return CanvasScreen.cameraOffset;
+    }
+
+    /**
      * 
      * @param {Sprite} obj A sprite object to render on screen
      */
