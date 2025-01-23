@@ -50,6 +50,17 @@ export class CanvasScreen{
     }
 
     /**
+     * Set the x and y offset of the canvas screen camera
+     * @param {Number} x 
+     * @param {Number} y 
+     */
+    setCameraOffset(x = 0, y = 0){
+        CanvasScreen.cameraOffset = {
+            x,
+            y
+        };
+    }
+    /**
      * 
      * @param {Sprite} obj A sprite object to render on screen
      */

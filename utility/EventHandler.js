@@ -44,9 +44,9 @@ export function HandleScreenClickedEvent(event, screen){
  * @param {{x: Number, y: Number}} mousePosition 
  */
 function InHitbox(sprite, mousePosition){
-    const minX = sprite.posX - CanvasScreen.cameraOffset.x;
+    const minX = sprite.posX;
     const maxX = minX + sprite.width * sprite.scale;
-    const minY = sprite.posY - CanvasScreen.cameraOffset.y;
+    const minY = sprite.posY;
     const maxY = minY + sprite.height * sprite.scale;
 
     const x = mousePosition.x;
