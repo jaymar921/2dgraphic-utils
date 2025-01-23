@@ -19,19 +19,28 @@ export function HandleScreenClickedEvent(event, screen){
         y: event.offsetY + CanvasScreen.cameraOffset.y
     }
 
-    const ObjectClicked = {
+    const ObjectClicked = {        
         objID: null,
         type: SpriteType.AIR,
         mousePosition,
-        sprite: null
+        layers: [],
     }
 
     screen.canvasObjects.forEach(sprite => {
         if(InHitbox(sprite, mousePosition)){
             ObjectClicked.objID = sprite.objID;
             ObjectClicked.type = sprite.type;
+
             const { posX, posY, name, width, height } = sprite;
             ObjectClicked.sprite = { posX, posY, name, width, height };
+
+            const layer = {
+                objID: sprite.objID,
+                type: sprite.type,
+                sprite: { posX, posY, name, width, height }
+            }
+
+            ObjectClicked.layers.push(layer);
         }
     })
     
