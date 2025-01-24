@@ -1,5 +1,4 @@
 import { CanvasScreen } from "./CanvasScreen"
-import { sleep } from "./HandlerUtils";
 import { Sprite } from "./Sprite"
 import { SpriteType } from "./SpriteType"
 
@@ -32,7 +31,6 @@ export function HandleScreenClickedEvent(event, screen){
             ObjectClicked.type = sprite.type;
 
             const { posX, posY, name, width, height } = sprite;
-            ObjectClicked.sprite = { posX, posY, name, width, height };
 
             const layer = {
                 objID: sprite.objID,
