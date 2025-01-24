@@ -1,5 +1,6 @@
 import { HandleCameraMovement, HandleScreenClickedEvent } from "./EventHandler";
 import { Sprite } from "./Sprite";
+import { SpriteType } from "./SpriteType";
 
 export class CanvasScreen{
     static context;
@@ -33,6 +34,7 @@ export class CanvasScreen{
         CanvasScreen.context = canvEl.getContext('2d');
         CanvasScreen.screen = this;
         this.canvasObjects = [];
+        this.staticCanvasObjects = [];
 
         // Event Handler
         canvEl.addEventListener('click', (e)=>HandleScreenClickedEvent(e, this));
@@ -65,6 +67,10 @@ export class CanvasScreen{
      * @param {Sprite} obj A sprite object to render on screen
      */
     registerObject(obj){
+        if(obj.type === SpriteType.STATIC){
+            this.staticCanvasObjects.push(obj);
+            return;
+        }
         this.canvasObjects.push(obj);
     }
 
@@ -75,6 +81,9 @@ export class CanvasScreen{
     unregisterObject(objectId){
         const newArr = this.canvasObjects.filter(o => o.objID !== objectId);
         this.canvasObjects = newArr;
+
+        const staticArrs = this.staticCanvasObjects.filter(o => o.objID !== objectId);
+        this.staticCanvasObjects = staticArrs;
     }
 
     /**
@@ -83,7 +92,7 @@ export class CanvasScreen{
      * @returns {Sprite | null}
      */
     getRegisteredObject(objectId){
-        const newArr = this.canvasObjects.filter(o => o.objID === objectId);
+        const newArr = this.getAllRegisteredObjects().filter(o => o.objID === objectId);
         if(newArr.length > 0) return newArr[0];
         return null;
     }
@@ -93,7 +102,7 @@ export class CanvasScreen{
      * @returns {Array<Sprite>}
      */
     getAllRegisteredObjects(){
-        return this.canvasObjects;
+        return [...this.canvasObjects, ...this.staticCanvasObjects];
     }
 
     /**
@@ -134,10 +143,15 @@ export class CanvasScreen{
 
         context.clearRect(0, 0, screen.width, screen.height);
 
-        const canvasObjects = screen.canvasObjects;
-        for (const obj of canvasObjects) {
-            obj.draw(context, offset);
+        
+
+        for (const obj of screen.getAllRegisteredObjects()) {
+            if(obj.type !== SpriteType.STATIC)
+                obj.draw(context, offset);
+            else obj.draw(context);
         }
+
+
 
 
         context.restore();
