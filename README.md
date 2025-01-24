@@ -4,6 +4,10 @@
 
 A lightweight 2-Dimensional graphic utility that can be used for website or game development. Wraps all renderable images inside a `CanvasScreen` object.
 
+### Live Demo: Basic Implementation of the CanvasScreen
+
+[2D-Graphics Implementation](https://jaymar921-2dgraphic-demo.vercel.app/)
+
 ## Installation
 
 ```bash
@@ -108,16 +112,17 @@ npm install @jaymar921/2dgraphic-utils
 
 ## SpriteType Enum
 
-| **SpriteType** | **Description**                                   |
-| -------------- | ------------------------------------------------- |
-| `OBJECT`       | Represents a general object.                      |
-| `PLAYER`       | Represents a player character.                    |
-| `BACKGROUND`   | Represents background elements in the game/scene. |
-| `FLUID`        | Represents fluid objects, such as water.          |
-| `PASSABLE`     | Represents objects that can be passed through.    |
-| `ITEM`         | Represents collectible items in a game.           |
-| `BLOCK`        | Represents solid, non-passable objects.           |
-| `AIR`          | Represents air or an empty space.                 |
+| **SpriteType** | **Description**                                                       |
+| -------------- | --------------------------------------------------------------------- |
+| `OBJECT`       | Represents a general object.                                          |
+| `PLAYER`       | Represents a player character.                                        |
+| `BACKGROUND`   | Represents background elements in the game/scene.                     |
+| `FLUID`        | Represents fluid objects, such as water.                              |
+| `PASSABLE`     | Represents objects that can be passed through.                        |
+| `ITEM`         | Represents collectible items in a game.                               |
+| `BLOCK`        | Represents solid, non-passable objects.                               |
+| `AIR`          | Represents air or an empty space.                                     |
+| `STATIC`       | Represents a static object, does not get affected by camera movement. |
 
 ## Short Examples of Usage
 
@@ -144,6 +149,8 @@ const playerSprite = new Sprite({
 });
 
 canvas.registerObject(playerSprite); // It will automatically render the playerSprite
+
+const objs = canvas.getRegisteredObjects(); // Returns an array of rendered sprites
 ```
 
 ### Example 2: Handling Mouse Click Events
@@ -185,6 +192,8 @@ const registeredObject = canvas.getRegisteredObject("sprite-id");
 ```
 
 ### Example 5: React Implementation with custom hook
+
+If you are working with ReactJS, there's a sample code below with an updated implementation of custom hook
 
 <details>
 <summary>useCanvas.js</summary>
@@ -369,6 +378,14 @@ createRoot(document.getElementById("root")).render(<App />);
 
 </details>
 
-### Live Demo: Basic Implementation of the CanvasScreen
+<br />
+-- End of documentation --
 
-[2D-Graphics Implementation](https://jaymar921-2dgraphic-demo.vercel.app/)
+---
+
+<p align="center">
+  <h3 align="center">Would you like to show support?</h3>
+</p>
+<p align="center">
+  <a href="https://www.buymeacoffee.com/jaymar921"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" width="150"/></a>
+</p>
