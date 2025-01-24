@@ -1,5 +1,5 @@
 /**
- * Predefined SpriteTypes that will be used for classifying Sprites
+ * Predefined SpriteTypes that will be used for classifying Sprites. SpriteType.STATIC will not be affected on camera drag
  */
 export const SpriteType = {
     OBJECT: 'Object',
@@ -9,5 +9,6 @@ export const SpriteType = {
     PASSABLE: 'Passable',
     ITEM: 'Item',
     BLOCK: 'Block',
-    AIR: 'Air'
+    AIR: 'Air',
+    STATIC: 'Static' // Will not be affected on camera drag
 }
