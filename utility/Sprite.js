@@ -23,7 +23,7 @@ export class Sprite{
      * @param {Boolean} param0.imageSmoothingEnabled Render smooth image (not good on lower resolution images), default: false
      * @param {SpriteType} param0.type Type of object that classifies this sprite
      */
-    constructor({objID, name, posX, posY, width, height, imageSource, animations, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
+    constructor({objID, name, posX, posY, width, height, imageSource, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
         this.objID = objID;
         this.posX = posX;
         this.posY = posY;
@@ -45,23 +45,14 @@ export class Sprite{
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this.frameBuffer = frameBuffer;
-        this.animations = animations;
         this.loop = loop;
         this.autoPlay = autoPlay;
         this.currentAnimation;
         this.scale = scale;
         this.imageSmoothingEnabled = imageSmoothingEnabled;
-
-        if(this.animations){
-            for(let key in this.animations){
-                const image = new Image();
-                image.src = this.animations[key].imageSrc;
-                this.animations[key].image = image;
-            }
-        }
     }
 
-    draw(context, offset){
+    draw(context, offset = { x : 0, y : 0}){
         if(!this.loaded) return;
         context.imageSmoothingEnabled = this.imageSmoothingEnabled;
         context.drawImage(
@@ -75,7 +66,7 @@ export class Sprite{
             this.width*this.scale,
             this.height*this.scale
         );
-
+        
         this.updateFrames();
     }
 
