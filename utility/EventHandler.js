@@ -42,7 +42,9 @@ export function HandleScreenClickedEvent(event, screen){
         }
     })
     
-    screen.onCanvasClickedEvent(ObjectClicked);
+    for(const func of screen.onCanvasClickedEvent){
+        func(ObjectClicked);
+    }
 }
 
 /**

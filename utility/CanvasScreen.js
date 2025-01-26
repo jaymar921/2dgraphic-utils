@@ -110,7 +110,10 @@ export class CanvasScreen{
      * @param {Function} callback 
      */
     handleScreenClickedEvent(callback){
-        this.onCanvasClickedEvent = callback;
+        if(!this.onCanvasClickedEvent){
+            this.onCanvasClickedEvent = []
+        }
+        this.onCanvasClickedEvent.push(callback);
     }
 
     /**
