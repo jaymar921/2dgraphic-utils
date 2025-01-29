@@ -102,6 +102,14 @@ npm install @jaymar921/2dgraphic-utils
 
 - Starts the sprite's animation (if it was paused or stopped).
 
+#### `pause()`
+
+- Pause the sprite's animation (if it was played).
+
+#### `switchAnimation(name)`
+
+- Switch to a different animation frame. See implementation [here](#example-6-custom-sprite-animation-v115-up).
+
 #### `updateFrames()`
 
 - Handles the animation logic, updating the current frame based on the `frameBuffer` value. It also supports looping.
@@ -377,6 +385,67 @@ createRoot(document.getElementById("root")).render(<App />);
 ```
 
 </details>
+
+### Example 6: Custom Sprite Animation [v1.1.5 up]
+
+Keeping things simple, you can create a custom Player class that extends from Sprite class
+
+```javascript
+// Creating player sprite with animation
+const player = new Sprite({
+  objID: "player",
+  name: "player 1",
+  posX: 150,
+  posY: 150,
+  imageSource: "path-to-idle-player-img",
+  scale: 3,
+
+  // Add animations
+  animations: {
+    // walk left animation
+    walkLeft: {
+      frames: 6,
+      imageSource: "path-to-walk-left-img",
+    },
+    // walk right animation
+    walkRight: {
+      frames: 6,
+      imageSource: "path-to-walk-right-img",
+    },
+    // idle left animation
+    IdleLeft: {
+      frames: 12,
+      imageSource: "path-to-idle-left-img",
+    },
+    // idle right animation
+    IdleRight: {
+      frames: 12,
+      imageSource: "path-to-idle-right-img",
+    },
+  },
+});
+
+// Custom logic here, lets say player is moving at a direction
+if (playerIsMovingLeft) {
+  // load the animation
+  player.switchAnimation("walkLeft");
+}
+
+if (playerIsMovingRight) {
+  // load the animation
+  player.switchAnimation("walkRight");
+}
+
+if (playerIsIdleLeft) {
+  // load the animation
+  player.switchAnimation("IdleLeft");
+}
+
+if (playerIsIdleRight) {
+  // load the animation
+  player.switchAnimation("IdleRight");
+}
+```
 
 <br />
 -- End of documentation --
