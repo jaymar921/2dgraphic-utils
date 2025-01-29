@@ -23,7 +23,7 @@ export class Sprite{
      * @param {Boolean} param0.imageSmoothingEnabled Render smooth image (not good on lower resolution images), default: false
      * @param {SpriteType} param0.type Type of object that classifies this sprite
      */
-    constructor({objID, name, posX, posY, width, height, imageSource, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
+    constructor({objID, name, posX, posY, width, height, imageSource, animations, frames = 1, frameBuffer = 3, loop = true, autoPlay = true, scale=1, imageSmoothingEnabled = false, type = SpriteType.OBJECT}){
         this.objID = objID;
         this.posX = posX;
         this.posY = posY;
@@ -39,6 +39,8 @@ export class Sprite{
             this.height = this.image.height;
         }
 
+        this.animations = animations;
+
         this.image.src = imageSource;
         this.loaded = false;
         this.frames = frames;
@@ -50,6 +52,35 @@ export class Sprite{
         this.currentAnimation;
         this.scale = scale;
         this.imageSmoothingEnabled = imageSmoothingEnabled;
+
+        this.currentAnimation;
+
+        if(this.animations){
+            for(let key in this.animations){
+                const image = new Image();
+                image.src = this.animations[key].imageSource;
+                this.animations[key].image = image;
+            }
+        }
+    }
+
+    switchAnimation(name){
+        if(!this.animations[name]){
+            console.error(`There's no animation with key '${name}'`)
+            return;
+        }
+        if(this.image === this.animations[name].image)
+            return;
+        this.currentFrame = 0;
+        this.image = this.animations[name].image;
+        this.frames = this.animations[name]?.frames ?? this.frames;
+        this.frameBuffer = this.animations[name]?.frameBuffer ?? this.frameBuffer;
+        this.loop = this.animations[name]?.loop ?? this.loop;
+        this.currentAnimation = this.animations[name]
+    }
+
+    pause(){
+        this.autoPlay = false;
     }
 
     draw(context, offset = { x : 0, y : 0}){
@@ -84,6 +115,13 @@ export class Sprite{
         if(this.elapsedFrames % this.frameBuffer === 0){
             if(this.currentFrame < this.frames - 1) this.currentFrame++;
             else if(this.loop) this.currentFrame = 0;
+        }
+
+        if(this.currentAnimation?.onComplete){
+            if(this.currentFrame === this.frames - 1 && !this.currentAnimation.isActive){
+                this.currentAnimation.onComplete();
+                this.currentAnimation.isActive = true;
+            }  
         }
     }
 }
