@@ -246,40 +246,40 @@ export function useCanvas(
   }
 
   /**
-     * Scale up images rendered inside the canvas [1.1.6]
-     * @param {Number} value
-     */
-    setGlobalScale(value){
-      if (!canvas) return;
-      canvas.setGlobalScale(value);
-    }
+   * Scale up images rendered inside the canvas [1.1.6]
+   * @param {Number} value
+   */
+  function setGlobalScale(value) {
+    if (!canvas) return;
+    canvas.setGlobalScale(value);
+  }
 
-    /**
-     * Enable canvas zoom
-     * @param {boolean} bool
-     */
-    enableScreenZoom(bool){
-      if (!canvas) return;
-      canvas.enableScreenZoom(bool);
-    }
+  /**
+   * Enable canvas zoom
+   * @param {boolean} bool
+   */
+  function enableScreenZoom(bool) {
+    if (!canvas) return;
+    canvas.enableScreenZoom(bool);
+  }
 
-    /**
-     * Triggers a callback function that can be used when a screen zoom is triggered [1.1.6]
-     * @param {Function} callback
-     */
-    handleScreenZoomEvent(callback){
-      if (!canvas) return;
-      canvas.handleScreenZoomEvent(callback);
-    }
+  /**
+   * Triggers a callback function that can be used when a screen zoom is triggered [1.1.6]
+   * @param {Function} callback
+   */
+  function handleScreenZoomEvent(callback) {
+    if (!canvas) return;
+    canvas.handleScreenZoomEvent(callback);
+  }
 
-    /**
-     * Set the value of zoom speed, default of 0.01 [1.1.6]
-     * @param {Number} value
-     */
-    setZoomSpeed(value = 0.01){
-      if (!canvas) return;
-      canvas.setZoomSpeed(value);
-    }
+  /**
+   * Set the value of zoom speed, default of 0.01 [1.1.6]
+   * @param {Number} value
+   */
+  function setZoomSpeed(value = 0.01) {
+    if (!canvas) return;
+    canvas.setZoomSpeed(value);
+  }
 
   return {
     registerObject,
@@ -293,7 +293,7 @@ export function useCanvas(
     setGlobalScale,
     enableScreenZoom,
     handleScreenZoomEvent,
-    setZoomSpeed
+    setZoomSpeed,
   };
 }
 ```
