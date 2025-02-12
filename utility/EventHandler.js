@@ -70,11 +70,6 @@ function InHitbox(sprite, mousePosition){
  * @param {HTMLElement} canvasElement 
  * @param {CanvasScreen} screen
  */
-/**
- * 
- * @param {HTMLElement} canvasElement 
- * @param {CanvasScreen} screen
- */
 export function HandleCameraMovement(canvasElement, screen) {
     let initialMousePos = { x: 0, y: 0 };
     let dragging = false;
@@ -138,4 +133,29 @@ export function HandleCameraMovement(canvasElement, screen) {
     canvasElement.addEventListener("touchcancel", () => {
         dragging = false;
     }, { passive: true });
+}
+
+/**
+ * Handles camera zoom
+ * 
+ * @param {WheelEvent} event 
+ * @param {CanvasScreen} screen
+ */
+export function HandleCameraZoom(event, screen){
+    if(!screen.screenZoom) return;
+    
+    if(event.deltaY > 0){
+        if(screen.globalScale > 0.2)
+            screen.globalScale -= screen.zoomSpeed;
+    }
+    else
+        screen.globalScale += screen.zoomSpeed;
+    
+
+    if (screen.onCanvasZoomEvent) {
+        for(const func of screen.onCanvasZoomEvent)
+            func({ globalScale: screen.globalScale, event});
+    }
+
+    event.preventDefault(); // Prevent default scroll behavior
 }

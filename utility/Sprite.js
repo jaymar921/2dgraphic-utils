@@ -52,6 +52,7 @@ export class Sprite{
         this.currentAnimation;
         this.scale = scale;
         this.imageSmoothingEnabled = imageSmoothingEnabled;
+        this.globalScale = 0;
 
         this.currentAnimation;
 
@@ -83,6 +84,10 @@ export class Sprite{
         this.autoPlay = false;
     }
 
+    setGlobalScale(value = 1){
+        this.globalScale = value;
+    }
+
     draw(context, offset = { x : 0, y : 0}){
         if(!this.loaded) return;
         context.imageSmoothingEnabled = this.imageSmoothingEnabled;
@@ -92,10 +97,10 @@ export class Sprite{
             0,
             this.width,
             this.height,
-            this.posX - offset.x,
-            this.posY - offset.y,
-            this.width*this.scale,
-            this.height*this.scale
+            (this.posX - offset.x)  * this.globalScale,
+            (this.posY - offset.y) * this.globalScale,
+            this.width*this.scale * this.globalScale,
+            this.height*this.scale * this.globalScale
         );
         
         this.updateFrames();

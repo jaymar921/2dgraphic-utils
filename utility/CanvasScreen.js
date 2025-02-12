@@ -1,4 +1,4 @@
-import { HandleCameraMovement, HandleScreenClickedEvent } from "./EventHandler";
+import { HandleCameraMovement, HandleCameraZoom, HandleScreenClickedEvent } from "./EventHandler";
 import { Sprite } from "./Sprite";
 import { SpriteType } from "./SpriteType";
 
@@ -35,10 +35,15 @@ export class CanvasScreen{
         CanvasScreen.screen = this;
         this.canvasObjects = [];
         this.staticCanvasObjects = [];
+        this.globalScale = 1;
+        this.zoomSpeed = 0.01;
+        this.canvasElement = canvEl;
 
         // Event Handler
-        canvEl.addEventListener('click', (e)=>HandleScreenClickedEvent(e, this));
+        canvEl.addEventListener('click', (e) => HandleScreenClickedEvent(e, this));
         HandleCameraMovement(canvEl, this);
+
+        canvEl.addEventListener('wheel', (e) => HandleCameraZoom(e, this), { passive: false });
 
         CanvasScreen.animate(this);
     }
@@ -124,6 +129,40 @@ export class CanvasScreen{
         this.captureCameraMovement = bool;
     }
 
+    /**
+     * Scale up images rendered inside the canvas
+     * @param {Number} value 
+     */
+    setGlobalScale(value){
+        this.globalScale = value;
+    }
+
+    /**
+     * Enable canvas zoom
+     * @param {boolean} bool 
+     */
+    enableScreenZoom(bool){
+        this.screenZoom = bool;
+    }
+
+    /**
+     * Triggers a callback function that can be used when a screen zoom is triggered
+     * @param {Function} callback 
+     */
+    handleScreenZoomEvent(callback){
+        if(!this.onCanvasZoomEvent)
+            this.onCanvasZoomEvent = [];
+        this.onCanvasZoomEvent.push(callback);
+    }
+
+    /**
+     * Set the value of zoom speed, default of 0.01
+     * @param {Number} value 
+     */
+    setZoomSpeed(value = 0.01){
+        this.zoomSpeed = value;
+    }
+
     static animate() {
         const fps = 60;
         const frameInterval = 1000 / fps;
@@ -149,6 +188,7 @@ export class CanvasScreen{
         
 
         for (const obj of screen.getAllRegisteredObjects()) {
+            obj.setGlobalScale(screen.globalScale);
             if(obj.type !== SpriteType.STATIC)
                 obj.draw(context, offset);
             else obj.draw(context);
