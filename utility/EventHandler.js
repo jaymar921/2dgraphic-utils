@@ -14,8 +14,8 @@ export function HandleScreenClickedEvent(event, screen){
     if(screen.dragging) return;
     // grab the clicked position
     const mousePosition = {
-        x: event.offsetX + CanvasScreen.cameraOffset.x,
-        y: event.offsetY + CanvasScreen.cameraOffset.y
+        x: event.offsetX + (CanvasScreen.cameraOffset.x * screen.globalScale),
+        y: event.offsetY + (CanvasScreen.cameraOffset.y * screen.globalScale)
     }
 
     const ObjectClicked = {        
@@ -91,6 +91,9 @@ export function HandleCameraMovement(canvasElement, screen) {
         CanvasScreen.cameraOffset.x -= deltaX;
         CanvasScreen.cameraOffset.y -= deltaY;
 
+        CanvasScreen.fixedCameraOffset.x -= deltaX;
+        CanvasScreen.fixedCameraOffset.y -= deltaY;
+
         initialMousePos = { x: e.offsetX, y: e.offsetY };
     });
 
@@ -121,6 +124,9 @@ export function HandleCameraMovement(canvasElement, screen) {
         CanvasScreen.cameraOffset.x -= deltaX;
         CanvasScreen.cameraOffset.y -= deltaY;
 
+        CanvasScreen.fixedCameraOffset.x -= deltaX;
+        CanvasScreen.fixedCameraOffset.y -= deltaY;
+
         initialMousePos = { x: touch.clientX, y: touch.clientY };
 
         e.preventDefault();
@@ -143,6 +149,8 @@ export function HandleCameraMovement(canvasElement, screen) {
  */
 export function HandleCameraZoom(event, screen){
     if(!screen.screenZoom) return;
+
+    const prevGlobalScale = screen.globalScale;
     
     if(event.deltaY > 0){
         if(screen.globalScale > 0.2)
@@ -150,6 +158,23 @@ export function HandleCameraZoom(event, screen){
     }
     else
         screen.globalScale += screen.zoomSpeed;
+
+    const { width, height } = screen.canvasElement;
+
+    
+    const zoomValue = parseFloat(screen.globalScale);
+    const { x, y } = screen.getCameraOffset();
+
+    const centerX = (CanvasScreen.fixedCameraOffset.x +
+        (CanvasScreen.fixedCameraOffset.x + width)) /
+      2;
+    const centerY = (CanvasScreen.fixedCameraOffset.y +
+        (CanvasScreen.fixedCameraOffset.y + height)) /
+      2;
+
+    const newX = centerX - (centerX - x) / (zoomValue / prevGlobalScale);
+    const newY = centerY - (centerY - y) / (zoomValue / prevGlobalScale);
+    screen.setCameraOffset(newX, newY);
     
 
     if (screen.onCanvasZoomEvent) {
