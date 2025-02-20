@@ -52,7 +52,7 @@ export class Sprite{
         this.currentAnimation;
         this.scale = scale;
         this.imageSmoothingEnabled = imageSmoothingEnabled;
-        this.globalScale = 0;
+        this.globalScale = 1;
 
         this.currentAnimation;
 
