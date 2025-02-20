@@ -7,7 +7,8 @@ export class CanvasScreen{
     static screen;
     static animationId = 0;
     static screenMoving;
-    static cameraOffset = { x: 0, y: 0 }; // Camera offset for screen movement
+    static cameraOffset = { x: 0, y: 0 }; // Camera offset for screen movement, affected on zoom
+    static fixedCameraOffset = { x: 0, y: 0 };  // does not get affected on zoom, always relative to the screen movement and x,y position in canvas
     /**
      * 
      * @param {string} canvasId ID of the canvas element
@@ -46,6 +47,16 @@ export class CanvasScreen{
         canvEl.addEventListener('wheel', (e) => HandleCameraZoom(e, this), { passive: false });
 
         CanvasScreen.animate(this);
+    }
+
+    /**
+     * Returns the camera offset relative of the canvas screen.
+     * 
+     * Does not get affected on zoom effect
+     * @returns {{x: Number, y: Number}}
+     */
+    getFixedCameraOffset(){
+        return CanvasScreen.fixedCameraOffset
     }
 
     /**
@@ -188,10 +199,12 @@ export class CanvasScreen{
         
 
         for (const obj of screen.getAllRegisteredObjects()) {
-            obj.setGlobalScale(screen.globalScale);
-            if(obj.type !== SpriteType.STATIC)
+            if(obj.type !== SpriteType.STATIC){
+                obj.setGlobalScale(screen.globalScale);
                 obj.draw(context, offset);
-            else obj.draw(context);
+            }
+            else
+                obj.draw(context);
         }
 
 
