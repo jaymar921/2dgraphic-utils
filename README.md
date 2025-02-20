@@ -32,7 +32,8 @@ npm install @jaymar921/2dgraphic-utils
 | `getRegisteredObject(objID)`                       | Retrieves a `Sprite` object by its `objID`. Returns `null` if not found.                                                                                                       |
 | `handleScreenClickedEvent(callbackFunc)`           | Registers a callback function to be triggered when the screen is clicked or touched.                                                                                           |
 | `enableScreenDrag(bool)`                           | Enables or disables dragging (panning) of the canvas using mouse events.                                                                                                       |
-| `getCameraOffset()`                                | Returns the `x` and `y` offset coordinates of the canvas camera                                                                                                                |
+| `getCameraOffset()`                                | Returns the `x` and `y` offset coordinates of the canvas camera. Gets modified on zoom.                                                                                        |
+| `getFixedCameraOffset()` <a>v1.1.7</a>             | Returns the `x` and `y` offset coordinate of the canvas camera and does not change on zoom                                                                                     |
 | `setCameraOffset(x, y)`                            | Update the camera position by the given `x` and `y` coordinates                                                                                                                |
 | `setGlobalScale(value)` <a>v1.1.6</a>              | Scale all the sprites rendered insie the canvas                                                                                                                                |
 | `enableScreenZoom(bool)` <a>v1.1.6</a>             | Enable canvas zoom                                                                                                                                                             |
@@ -171,6 +172,16 @@ export function useCanvas(
   }, [canvasId, background]);
 
   /**
+   * Returns the camera offset relative of the canvas screen.
+   *
+   * Does not get affected on zoom effect
+   * @returns {{x: Number, y: Number}}
+   */
+  function getFixedCameraOffset() {
+    return CanvasScreen.fixedCameraOffset;
+  }
+
+  /**
    * Returns the camera offset of the canvas screen
    * @returns {{x: Number, y: Number}}
    */
@@ -294,6 +305,7 @@ export function useCanvas(
     enableScreenZoom,
     handleScreenZoomEvent,
     setZoomSpeed,
+    getFixedCameraOffset,
   };
 }
 ```
