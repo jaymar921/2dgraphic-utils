@@ -115,7 +115,7 @@ export function HandleCameraMovement(canvasElement, screen) {
       initialMousePos = { x: touch.clientX, y: touch.clientY };
       dragging = true;
     },
-    { passive: true }
+    { passive: true },
   );
 
   canvasElement.addEventListener(
@@ -137,7 +137,7 @@ export function HandleCameraMovement(canvasElement, screen) {
 
       e.preventDefault();
     },
-    { passive: false }
+    { passive: false },
   );
 
   canvasElement.addEventListener(
@@ -145,7 +145,7 @@ export function HandleCameraMovement(canvasElement, screen) {
     () => {
       dragging = false;
     },
-    { passive: true }
+    { passive: true },
   );
 
   canvasElement.addEventListener(
@@ -153,7 +153,7 @@ export function HandleCameraMovement(canvasElement, screen) {
     () => {
       dragging = false;
     },
-    { passive: true }
+    { passive: true },
   );
 }
 
