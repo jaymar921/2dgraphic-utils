@@ -10,9 +10,10 @@ export class CanvasScreen {
   static context;
   static screen;
   static animationId = 0;
-  static screenMoving;
+  static lastFrameTime = 0; // FIX: initialize so first frame comparison doesn't yield NaN
   static cameraOffset = { x: 0, y: 0 }; // Camera offset for screen movement, affected on zoom
   static fixedCameraOffset = { x: 0, y: 0 }; // does not get affected on zoom, always relative to the screen movement and x,y position in canvas
+
   /**
    *
    * @param {string} canvasId ID of the canvas element
@@ -47,6 +48,7 @@ export class CanvasScreen {
     this.globalScale = 1;
     this.zoomSpeed = 0.01;
     this.canvasElement = canvEl;
+    this.dragging = false; // FIX: expose dragging on the screen instance so click handler can read it
 
     // Event Handler
     canvEl.addEventListener("click", (e) => HandleScreenClickedEvent(e, this));
@@ -56,7 +58,7 @@ export class CanvasScreen {
       passive: false,
     });
 
-    CanvasScreen.animate(this);
+    CanvasScreen.animate();
   }
 
   /**
@@ -83,11 +85,9 @@ export class CanvasScreen {
    * @param {Number} y
    */
   setCameraOffset(x = 0, y = 0) {
-    CanvasScreen.cameraOffset = {
-      x,
-      y,
-    };
+    CanvasScreen.cameraOffset = { x, y };
   }
+
   /**
    *
    * @param {Sprite} obj A sprite object to render on screen
@@ -105,13 +105,10 @@ export class CanvasScreen {
    * @param {string} objectId Remove a sprite object that is rendered on screen
    */
   unregisterObject(objectId) {
-    const newArr = this.canvasObjects.filter((o) => o.objID !== objectId);
-    this.canvasObjects = newArr;
-
-    const staticArrs = this.staticCanvasObjects.filter(
+    this.canvasObjects = this.canvasObjects.filter((o) => o.objID !== objectId);
+    this.staticCanvasObjects = this.staticCanvasObjects.filter(
       (o) => o.objID !== objectId,
     );
-    this.staticCanvasObjects = staticArrs;
   }
 
   /**
@@ -120,11 +117,10 @@ export class CanvasScreen {
    * @returns {Sprite | null}
    */
   getRegisteredObject(objectId) {
-    const newArr = this.getAllRegisteredObjects().filter(
+    const found = this.getAllRegisteredObjects().find(
       (o) => o.objID === objectId,
     );
-    if (newArr.length > 0) return newArr[0];
-    return null;
+    return found ?? null; // FIX: use .find() instead of .filter()[0] to avoid creating a new array
   }
 
   /**
@@ -160,6 +156,11 @@ export class CanvasScreen {
    */
   setGlobalScale(value) {
     this.globalScale = value;
+    // FIX: propagate the new scale to all non-static objects immediately
+    // instead of doing it inside the render loop every frame
+    for (const obj of this.canvasObjects) {
+      obj.setGlobalScale(value);
+    }
   }
 
   /**
@@ -187,6 +188,25 @@ export class CanvasScreen {
     this.zoomSpeed = value;
   }
 
+  /**
+   * Returns true if a sprite is within the visible viewport (used for culling)
+   * @param {Sprite} obj
+   * @param {{x: Number, y: Number}} offset
+   * @returns {boolean}
+   */
+  isInViewport(obj, offset) {
+    const screenX = (obj.posX - offset.x) * this.globalScale;
+    const screenY = (obj.posY - offset.y) * this.globalScale;
+    const scaledW = obj.width * obj.scale * this.globalScale;
+    const scaledH = obj.height * obj.scale * this.globalScale;
+    return (
+      screenX + scaledW > 0 &&
+      screenX < this.width &&
+      screenY + scaledH > 0 &&
+      screenY < this.height
+    );
+  }
+
   static animate() {
     const fps = 60;
     const frameInterval = 1000 / fps;
@@ -209,13 +229,20 @@ export class CanvasScreen {
 
     context.clearRect(0, 0, screen.width, screen.height);
 
-    for (const obj of screen.getAllRegisteredObjects()) {
-      if (obj.type !== SpriteType.STATIC) {
-        obj.setGlobalScale(screen.globalScale);
+    // Draw world-space (non-static) objects — only those inside the viewport
+    for (const obj of screen.canvasObjects) {
+      if (screen.isInViewport(obj, offset)) {
+        // FIX: viewport culling, skip off-screen sprites
         obj.draw(context, offset);
-      } else obj.draw(context);
+      }
     }
 
-    context.restore();
+    // Draw static/HUD objects — always drawn, no offset or culling needed
+    for (const obj of screen.staticCanvasObjects) {
+      obj.draw(context);
+    }
+
+    // FIX: removed orphaned context.restore() that had no matching context.save(),
+    // which would cause a canvas state stack underflow over time
   }
 }

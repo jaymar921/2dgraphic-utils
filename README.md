@@ -30,45 +30,55 @@ npm install @jaymar921/2dgraphic-utils
 | `registerObject(spriteObj)`                        | Registers a `Sprite` object for rendering on the canvas. Order of registration matters, as later objects will overlap earlier ones.                                            |
 | `unregisterObject(objID)`                          | Removes a `Sprite` object from the screen by its `objID`.                                                                                                                      |
 | `getRegisteredObject(objID)`                       | Retrieves a `Sprite` object by its `objID`. Returns `null` if not found.                                                                                                       |
+| `getAllRegisteredObjects()`                        | Returns a list of all registered `Sprite` objects currently rendered on screen.                                                                                                |
 | `handleScreenClickedEvent(callbackFunc)`           | Registers a callback function to be triggered when the screen is clicked or touched.                                                                                           |
-| `enableScreenDrag(bool)`                           | Enables or disables dragging (panning) of the canvas using mouse events.                                                                                                       |
+| `enableScreenDrag(bool)`                           | Enables or disables dragging (panning) of the canvas using mouse or touch events.                                                                                              |
 | `getCameraOffset()`                                | Returns the `x` and `y` offset coordinates of the canvas camera. Gets modified on zoom.                                                                                        |
-| `getFixedCameraOffset()` <a>v1.1.7</a>             | Returns the `x` and `y` offset coordinate of the canvas camera and does not change on zoom                                                                                     |
-| `setCameraOffset(x, y)`                            | Update the camera position by the given `x` and `y` coordinates                                                                                                                |
-| `setGlobalScale(value)` <a>v1.1.6</a>              | Scale all the sprites rendered insie the canvas                                                                                                                                |
-| `enableScreenZoom(bool)` <a>v1.1.6</a>             | Enable canvas zoom                                                                                                                                                             |
-| `handleScreenZoomEvent(callback)` <a>v1.1.6</a>    | Registers a callback function to be triggered when the screen is zoomed                                                                                                        |
-| `setZoomSpeed(value)` <a>v1.1.6</a>                | Set the speed of zoom : default of `0.01` per scroll                                                                                                                           |
-| `static animate()`                                 | Responsible for continuously updating the canvas by clearing the screen and redrawing all registered sprites. This function runs on each frame to animate objects.             |
+| `getFixedCameraOffset()`                           | Returns the `x` and `y` offset of the canvas camera. Does **not** change on zoom.                                                                                              |
+| `setCameraOffset(x, y)`                            | Update the camera position by the given `x` and `y` coordinates.                                                                                                               |
+| `setGlobalScale(value)`                            | Scale all sprites rendered inside the canvas. Also propagates the new scale to all sprite objects immediately.                                                                 |
+| `enableScreenZoom(bool)`                           | Enable or disable canvas zoom via mouse wheel.                                                                                                                                 |
+| `handleScreenZoomEvent(callback)`                  | Registers a callback function to be triggered when the screen is zoomed.                                                                                                       |
+| `setZoomSpeed(value)`                              | Set the speed of zoom. Default: `0.01` per scroll.                                                                                                                             |
+| `isInViewport(obj, offset)`                        | Returns `true` if the given sprite is within the visible viewport. Used internally for render culling.                                                                         |
+| `static animate()`                                 | Continuously updates the canvas by clearing the screen and redrawing all registered sprites. Runs at a capped 60 FPS. Off-screen sprites are automatically culled.             |
+
+### Important Notes: CanvasScreen
+
+- **Coordinate space**: Sprite positions (`posX`, `posY`) are always in **world space**. The camera offset and global scale are applied during rendering — you never need to manually adjust sprite positions for zoom or pan.
+- **Drag suppression**: Click events are automatically suppressed after a drag so that releasing a pan does not accidentally trigger a click interaction.
+- **Viewport culling**: Only world-space sprites that are within the visible viewport are drawn each frame. Static sprites (HUD elements) are always drawn.
 
 ## Sprite Class
 
-| **Function**                                                                                                                                              | **Description**                                                                                                                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constructor({objID, name, posX, posY, width, height, imageSource, animations, frames, frameBuffer, loop, autoPlay, scale, imageSmoothingEnabled, type})` | Initializes a `Sprite` object with properties like position, size, image source, and animation settings. Important Note: The image source that was tested is of file type `png` and `jpeg`. Other file types might cause some rendering issue. |
-| `draw(context)`                                                                                                                                           | Draws the sprite on the canvas at its current position, using the current frame if it's an animated sprite.                                                                                                                                    |
-| `setGlobalScale(value)` <a>v1.1.6</a>                                                                                                                     | A utility function that will be called from `CanvasScreen` for scaling up the sprite globally.                                                                                                                                                 |
-| `update(context)`                                                                                                                                         | Calls `draw()` to render the sprite.                                                                                                                                                                                                           |
-| `play()`                                                                                                                                                  | Starts the animation of the sprite if it was paused.                                                                                                                                                                                           |
-| `updateFrames()`                                                                                                                                          | Updates the current frame of the sprite based on the frame buffer. Handles looping and auto-playing logic.                                                                                                                                     |
+| **Function**                                                                                                                                              | **Description**                                                                                                                                                                                         |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `constructor({objID, name, posX, posY, width, height, imageSource, animations, frames, frameBuffer, loop, autoPlay, scale, imageSmoothingEnabled, type})` | Initializes a `Sprite` object with properties like position, size, image source, and animation settings. **Note:** Tested image formats are `png` and `jpeg`. Other formats may cause rendering issues. |
+| `draw(context, offset)`                                                                                                                                   | Draws the sprite on the canvas. Pass the camera `offset` for world-space sprites; omit it for static sprites.                                                                                           |
+| `setGlobalScale(value)`                                                                                                                                   | Called by `CanvasScreen` when the global scale changes. You do not need to call this manually.                                                                                                          |
+| `update(context)`                                                                                                                                         | Calls `draw()` to render the sprite.                                                                                                                                                                    |
+| `play()`                                                                                                                                                  | Starts the animation of the sprite if it was paused.                                                                                                                                                    |
+| `switchAnimation(name)`                                                                                                                                   | Switches the active animation by name (must match a key in the `animations` object passed to the constructor).                                                                                          |
+| `updateFrames()`                                                                                                                                          | Updates the current frame of the sprite based on the frame buffer. Handles looping and auto-playing logic.                                                                                              |
 
 ### Important Note: Sprite Class
 
-- You'll only need to create an instance of the class and register it in the `CanvasScreen` as it will do all the rendering function.
+- You only need to create an instance of `Sprite` and register it with `CanvasScreen`. The screen handles all rendering automatically.
+- Sprite positions are **world-space coordinates**. The camera offset is applied by the renderer — do not offset `posX`/`posY` manually to compensate for panning or zoom.
 
 ## SpriteType Enum
 
-| **SpriteType** | **Description**                                                       |
-| -------------- | --------------------------------------------------------------------- |
-| `OBJECT`       | Represents a general object.                                          |
-| `PLAYER`       | Represents a player character.                                        |
-| `BACKGROUND`   | Represents background elements in the game/scene.                     |
-| `FLUID`        | Represents fluid objects, such as water.                              |
-| `PASSABLE`     | Represents objects that can be passed through.                        |
-| `ITEM`         | Represents collectible items in a game.                               |
-| `BLOCK`        | Represents solid, non-passable objects.                               |
-| `AIR`          | Represents air or an empty space.                                     |
-| `STATIC`       | Represents a static object, does not get affected by camera movement. |
+| **SpriteType** | **Description**                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------- |
+| `OBJECT`       | Represents a general object.                                                                             |
+| `PLAYER`       | Represents a player character.                                                                           |
+| `BACKGROUND`   | Represents background elements in the game/scene.                                                        |
+| `FLUID`        | Represents fluid objects, such as water.                                                                 |
+| `PASSABLE`     | Represents objects that can be passed through.                                                           |
+| `ITEM`         | Represents collectible items in a game.                                                                  |
+| `BLOCK`        | Represents solid, non-passable objects.                                                                  |
+| `AIR`          | Represents air or an empty space.                                                                        |
+| `STATIC`       | Represents a static object that is **not** affected by camera movement or zoom. Useful for HUD elements. |
 
 ## Short Examples of Usage
 
@@ -78,73 +88,76 @@ npm install @jaymar921/2dgraphic-utils
 import { CanvasScreen } from "@jaymar921/2dgraphic-utils";
 import { Sprite, SpriteType } from "@jaymar921/2dgraphic-utils";
 
-const canvas = new CanvasScreen("myCanvas"); // Assuming there's a <canvas id="myCanvas"></canvas> in the HTML
+const canvas = new CanvasScreen("myCanvas"); // Assumes <canvas id="myCanvas"></canvas> exists in the HTML
 
-canvas.setCameraOffset(5, 5); // Customize the camera position | default: x-0, y-0
+canvas.setCameraOffset(5, 5); // Customize the camera position | default: x=0, y=0
 
 const playerSprite = new Sprite({
   objID: "player1",
   name: "Player 1",
-  posX: 50,
-  posY: 50,
+  posX: 50, // World-space X position
+  posY: 50, // World-space Y position
   width: 32,
   height: 32,
-  imageSource: "player-sprite.png", // Path to your image
-  type: SpriteType.PLAYER, // Classify this Sprite object to a type "Player" | default: "Object"
+  imageSource: "player-sprite.png",
+  type: SpriteType.PLAYER,
   scale: 1,
 });
 
-canvas.registerObject(playerSprite); // It will automatically render the playerSprite
+canvas.registerObject(playerSprite); // Sprite is now rendered automatically
 
-const objs = canvas.getRegisteredObjects(); // Returns an array of rendered sprites
+const objs = canvas.getAllRegisteredObjects(); // Returns all currently rendered sprites
 ```
 
 ### Example 2: Handling Mouse Click Events
 
 ```javascript
 canvas.handleScreenClickedEvent((e) => {
-  const objID = e.objID; // objID of the top-most sprite that was clicked or touched
-  const spriteType = e.type; // The SpriteType of the clicked top-most sprite | default: SpriteType.AIR
-  const mouseX = e.mousePosition.x; // The offsetX of the mouse cursor
-  const mouseY = e.mousePosition.y; // The offsetY of the mouse cursor
-  const layers = e.layers; // Array of sprites within the clicked position
+  const objID = e.objID; // objID of the top-most sprite that was clicked
+  const spriteType = e.type; // SpriteType of the top-most clicked sprite | default: SpriteType.AIR
+  const mouseX = e.mousePosition.x; // World-space X of the mouse cursor
+  const mouseY = e.mousePosition.y; // World-space Y of the mouse cursor
+  const layers = e.layers; // Array of all sprites at the clicked position
 
-  console.log(`Mouse clicked at position: (${mouseX}, ${mouseY})`);
+  console.log(`Mouse clicked at world position: (${mouseX}, ${mouseY})`);
 
-  // Custom logic such as moving the playerSprite by altering the posX and posY
+  // Custom logic such as moving the player by altering posX and posY
 });
 ```
+
+> **Note:** `mousePosition` is returned in **world space**. You can compare it directly against `sprite.posX` / `sprite.posY` without any manual offset or scale correction.
 
 ### Example 3: Enabling Camera Movement via Dragging
 
 ```javascript
-canvas.enableScreenDrag(true); // Allow camera movement by dragging the canvas
+canvas.enableScreenDrag(true); // Allow panning by dragging the canvas
+
+// Pan speed is automatically adjusted for the current zoom level,
+// so dragging always feels consistent regardless of how far in or out you've zoomed.
 ```
 
 ### Example 4: Canvas Rendered Objects
 
 ```javascript
-// To keep track of all registered objects inside the canvas, you can call the getAllRegisteredObjects() function
+// Get all sprites currently registered on the canvas
+const registeredObjects = canvas.getAllRegisteredObjects(); // Array<Sprite>
 
-const registeredObjects = canvas.getAllRegisteredObjects(); // Array of Sprites
+// registeredObjects is passed by reference — mutating properties like posX/posY
+// will be reflected on screen immediately on the next frame.
 
-// registeredObjects is passed by reference, you can alter the object's property and it will show the effect on screen. Example is by changing the sprite's posX and posY.
+// Remove a sprite from the canvas by its objID
+canvas.unregisterObject("player-1");
 
-// To remove a sprite from being rendered inside the canvas, you can unregister the object by given objID
-canvas.unregisterObject("player-1"); // Instant effect
-
-// Get a single registered object by objID given.
-const registeredObject = canvas.getRegisteredObject("sprite-id");
+// Get a single registered sprite by objID
+const registeredObject = canvas.getRegisteredObject("sprite-id"); // Sprite | null
 ```
 
-### Example 5: React Implementation with custom hook
+### Example 5: React Implementation with Custom Hook
 
-If you are working with ReactJS, there's a sample code below with an updated implementation of custom hook
+If you are working with ReactJS, here's a sample implementation using a custom hook:
 
 <details>
 <summary>useCanvas.js</summary>
-
-Copy the code below if you're trying to implement this code in reactJS
 
 ```javascript
 // useCanvas.js
@@ -152,7 +165,6 @@ import { CanvasScreen, Sprite } from "@jaymar921/2dgraphic-utils";
 import { useEffect, useState } from "react";
 
 /**
- *
  * @param {string} canvasId
  * @param {Number} width
  * @param {Number} height
@@ -162,7 +174,7 @@ export function useCanvas(
   canvasId = "my-canvas",
   width,
   height,
-  background = "black"
+  background = "black",
 ) {
   const [canvas, setCanvas] = useState();
 
@@ -171,122 +183,63 @@ export function useCanvas(
     setCanvas(canvas);
   }, [canvasId, background]);
 
-  /**
-   * Returns the camera offset relative of the canvas screen.
-   *
-   * Does not get affected on zoom effect
-   * @returns {{x: Number, y: Number}}
-   */
   function getFixedCameraOffset() {
     return CanvasScreen.fixedCameraOffset;
   }
 
-  /**
-   * Returns the camera offset of the canvas screen
-   * @returns {{x: Number, y: Number}}
-   */
   function getCameraOffset() {
     return CanvasScreen.cameraOffset;
   }
 
-  /**
-   * Set the x and y offset of the canvas screen camera
-   * @param {Number} x
-   * @param {Number} y
-   */
   function setCameraOffset(x = 0, y = 0) {
-    CanvasScreen.cameraOffset = {
-      x,
-      y,
-    };
+    CanvasScreen.cameraOffset = { x, y };
   }
 
-  /**
-   * Enable Camera Movement using mouse drag
-   * @param {boolean} arg
-   */
   function enableScreenDrag(bool) {
     if (!canvas) return;
     canvas.enableScreenDrag(bool);
   }
 
-  /**
-   * This triggers a callback function that can be used when a mouse cursor clicked on an object's hitbox inside the CanvasScreen (Basically an interaction). It will also return the position of the mouse in the CanvasScreen.
-   * @param {Function} callback
-   */
   function handleScreenClickedEvent(callbackFunc) {
     if (!canvas) return;
     canvas.handleScreenClickedEvent(callbackFunc);
   }
 
-  /**
-   *
-   * @param {Sprite} obj A sprite object to render on screen
-   */
   function registerObject(sprite) {
     if (!canvas) return;
     canvas.registerObject(sprite);
   }
 
-  /**
-   *
-   * @param {string} objectId Remove a sprite object that is rendered on screen
-   */
   function unregisterObject(objectId) {
     if (!canvas) return;
     canvas.unregisterObject(objectId);
   }
 
-  /**
-   *
-   * @param {string} objectId Get a sprite object that is rendered on screen
-   * @returns {Sprite | null}
-   */
   function getRegisteredObject(objectId) {
-    if (!canvas) return;
-    canvas.getRegisteredObject(objectId);
+    if (!canvas) return null;
+    return canvas.getRegisteredObject(objectId);
   }
 
-  /**
-   * Returns a list of registered sprite objects that was rendered on screen
-   * @returns {Array<Sprite>}
-   */
   function getAllRegisteredObjects() {
-    if (!canvas) return;
-    canvas.getAllRegisteredObjects();
+    if (!canvas) return [];
+    return canvas.getAllRegisteredObjects();
   }
 
-  /**
-   * Scale up images rendered inside the canvas [1.1.6]
-   * @param {Number} value
-   */
   function setGlobalScale(value) {
     if (!canvas) return;
     canvas.setGlobalScale(value);
   }
 
-  /**
-   * Enable canvas zoom
-   * @param {boolean} bool
-   */
   function enableScreenZoom(bool) {
     if (!canvas) return;
     canvas.enableScreenZoom(bool);
   }
 
-  /**
-   * Triggers a callback function that can be used when a screen zoom is triggered [1.1.6]
-   * @param {Function} callback
-   */
   function handleScreenZoomEvent(callback) {
     if (!canvas) return;
     canvas.handleScreenZoomEvent(callback);
   }
 
-  /**
-   * Set the value of zoom speed, default of 0.01 [1.1.6]
-   * @param {Number} value
-   */
   function setZoomSpeed(value = 0.01) {
     if (!canvas) return;
     canvas.setZoomSpeed(value);
@@ -322,21 +275,16 @@ import { useCanvas } from "./hooks/useCanvas";
 import { Sprite } from "@jaymar921/2dgraphic-utils";
 
 function App() {
-  // initialize the useCanvas hook
   const canvasScreen = useCanvas("canvas-screen", 300, 300, "blue");
 
-  // do something when user clicks anywhere inside the canvas
   function handleClick(clickEvent) {
     console.log(clickEvent);
   }
 
   useEffect(() => {
-    // enable screen drag
     canvasScreen.enableScreenDrag(true);
-    // invoke the handleClick
     canvasScreen.handleScreenClickedEvent(handleClick);
 
-    // create a Sprite Object
     const spr1 = new Sprite({
       objID: "spr1",
       name: "sprite 1",
@@ -346,7 +294,6 @@ function App() {
       scale: 3,
     });
 
-    // render 'spr1' on the CanvasScreen
     canvasScreen.registerObject(spr1);
   }, [canvasScreen]);
 
@@ -375,12 +322,9 @@ createRoot(document.getElementById("root")).render(<App />);
 
 </details>
 
-### Example 6: Custom Sprite Animation [v1.1.5 up]
-
-Keeping things simple, you can create a custom Player class that extends from Sprite class
+### Example 6: Custom Sprite Animation
 
 ```javascript
-// Creating player sprite with animation
 const player = new Sprite({
   objID: "player",
   name: "player 1",
@@ -389,55 +333,52 @@ const player = new Sprite({
   imageSource: "path-to-idle-player-img",
   scale: 3,
 
-  // Add animations
   animations: {
-    // walk left animation
-    walkLeft: {
-      frames: 6,
-      imageSource: "path-to-walk-left-img",
-    },
-    // walk right animation
-    walkRight: {
-      frames: 6,
-      imageSource: "path-to-walk-right-img",
-    },
-    // idle left animation
-    IdleLeft: {
-      frames: 12,
-      imageSource: "path-to-idle-left-img",
-    },
-    // idle right animation
-    IdleRight: {
-      frames: 12,
-      imageSource: "path-to-idle-right-img",
-    },
+    walkLeft: { frames: 6, imageSource: "path-to-walk-left-img" },
+    walkRight: { frames: 6, imageSource: "path-to-walk-right-img" },
+    IdleLeft: { frames: 12, imageSource: "path-to-idle-left-img" },
+    IdleRight: { frames: 12, imageSource: "path-to-idle-right-img" },
   },
 });
 
-// Custom logic here, lets say player is moving at a direction
-if (playerIsMovingLeft) {
-  // load the animation
-  player.switchAnimation("walkLeft");
-}
-
-if (playerIsMovingRight) {
-  // load the animation
-  player.switchAnimation("walkRight");
-}
-
-if (playerIsIdleLeft) {
-  // load the animation
-  player.switchAnimation("IdleLeft");
-}
-
-if (playerIsIdleRight) {
-  // load the animation
-  player.switchAnimation("IdleRight");
-}
+// Switch animation based on game logic
+if (playerIsMovingLeft) player.switchAnimation("walkLeft");
+if (playerIsMovingRight) player.switchAnimation("walkRight");
+if (playerIsIdleLeft) player.switchAnimation("IdleLeft");
+if (playerIsIdleRight) player.switchAnimation("IdleRight");
 ```
 
-<br />
--- End of documentation --
+### Example 7: Zoom
+
+```javascript
+canvas.enableScreenZoom(true);
+canvas.setZoomSpeed(0.05); // Faster zoom | default: 0.01
+
+// React to zoom events
+canvas.handleScreenZoomEvent(({ globalScale, event }) => {
+  console.log("Current zoom level:", globalScale);
+});
+```
+
+> **Note:** Zoom is centered on the visible viewport. Panning speed and click detection are automatically corrected for the current zoom level — no manual adjustment needed.
+
+## Changelog
+
+### Latest
+
+- **Fixed** mouse click world-space conversion: click coordinates are now correctly transformed to world space (`offsetX / globalScale + cameraOffset.x`) so hitbox detection is accurate at any zoom level.
+- **Fixed** `InHitbox` to use pure world-space comparison. Previously applied `globalScale` again inside the hitbox check, causing misses at zoom levels other than 1.
+- **Fixed** drag-suppression for click events: `dragging` state is now exposed on the `CanvasScreen` instance so the click handler can correctly suppress spurious clicks that follow a pan gesture.
+- **Fixed** `mouseup` timing: a `setTimeout(..., 0)` ensures the `click` event (which fires after `mouseup`) still sees the dragging flag and is correctly ignored.
+- **Fixed** `lastFrameTime` initialization to `0` so the first frame's FPS comparison does not produce `NaN`.
+- **Fixed** orphaned `context.restore()` in `animate()` that had no matching `context.save()`, which would eventually cause a canvas state stack underflow.
+- **Fixed** pan delta now divided by `globalScale` so panning speed stays consistent at any zoom level.
+- **Fixed** touch coordinates now use `getBoundingClientRect()` for accurate offset calculation.
+- **Improved** `setGlobalScale()` now propagates the new scale to all sprite objects immediately rather than doing so inside the render loop on every frame.
+- **Improved** `animate()` now iterates `canvasObjects` and `staticCanvasObjects` separately, avoiding a new array allocation via spread on every frame.
+- **Improved** Viewport culling: world-space sprites that are entirely outside the visible viewport are skipped during rendering.
+- **Improved** `getRegisteredObject()` now uses `.find()` instead of `.filter()[0]` to avoid creating a temporary array.
+- **Improved** Zoom `globalScale` is clamped with `.toFixed(4)` to prevent floating-point drift at extreme zoom levels.
 
 ---
 
