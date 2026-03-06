@@ -40,6 +40,9 @@ npm install @jaymar921/2dgraphic-utils
 | `enableScreenZoom(bool)`                           | Enable or disable canvas zoom via mouse wheel.                                                                                                                                 |
 | `handleScreenZoomEvent(callback)`                  | Registers a callback function to be triggered when the screen is zoomed.                                                                                                       |
 | `setZoomSpeed(value)`                              | Set the speed of zoom. Default: `0.01` per scroll.                                                                                                                             |
+| `setYsort(bool)` <a>v1.3.0</a>                     | Enable or disable Y-sorting for world-space sprites. When enabled, sprites are depth-sorted by their bottom edge each frame for correct top-down rendering order.              |
+| `setBehindOpacity(value)` <a>v1.3.0</a>            | Set the opacity of an object when it renders on top of the player. Default: `0.5`. Has no effect when Y-sort is disabled.                                                      |
+| `setOverlapThreshold(value)` <a>v1.3.0</a>         | Set the minimum overlap percentage (0.0–1.0) before opacity is applied. Based on the intersecting area relative to the smaller bounding box. Default: `0.1` (10%).             |
 | `isInViewport(obj, offset)`                        | Returns `true` if the given sprite is within the visible viewport. Used internally for render culling.                                                                         |
 | `static animate()`                                 | Continuously updates the canvas by clearing the screen and redrawing all registered sprites. Runs at a capped 60 FPS. Off-screen sprites are automatically culled.             |
 
@@ -245,6 +248,21 @@ export function useCanvas(
     canvas.setZoomSpeed(value);
   }
 
+  function setYsort(bool) {
+    if (!canvas) return;
+    canvas.setYsort(bool);
+  }
+
+  function setBehindOpacity(value) {
+    if (!canvas) return;
+    canvas.setBehindOpacity(value);
+  }
+
+  function setOverlapThreshold(value) {
+    if (!canvas) return;
+    canvas.setOverlapThreshold(value);
+  }
+
   return {
     registerObject,
     unregisterObject,
@@ -259,6 +277,9 @@ export function useCanvas(
     handleScreenZoomEvent,
     setZoomSpeed,
     getFixedCameraOffset,
+    setYsort,
+    setBehindOpacity,
+    setOverlapThreshold,
   };
 }
 ```
@@ -362,14 +383,43 @@ canvas.handleScreenZoomEvent(({ globalScale, event }) => {
 
 > **Note:** Zoom is centered on the visible viewport. Panning speed and click detection are automatically corrected for the current zoom level — no manual adjustment needed.
 
+### Example 8: Y-Sort for Top-Down Games [v1.3.0]
+
+Y-sorting gives correct depth ordering for top-down style games. Sprites are sorted by their bottom edge each frame so the player naturally appears behind objects it stands above and in front of objects it stands below.
+
+```javascript
+canvas.setYsort(true);
+
+// When the player walks behind an object, the object becomes semi-transparent
+// so the player is still visible underneath it.
+canvas.setBehindOpacity(0.5); // default: 0.5
+
+// Only apply transparency once the player and object overlap by at least 10%
+// of the smaller bounding box. Prevents the effect from triggering on nearby
+// objects that aren't genuinely overlapping the player.
+canvas.setOverlapThreshold(0.1); // default: 0.1 (10%)
+```
+
+**Y-sort render order:**
+
+1. `BACKGROUND` — always drawn first, always behind everything
+2. All other world-space types (`OBJECT`, `BLOCK`, `ITEM`, `PLAYER`, etc.) — sorted by bottom edge (`posY + height * scale`)
+3. `STATIC` — always drawn last, on top of everything (HUD layer)
+
 ## Changelog
 
-### Latest
+### v1.3.0
+
+- **Added** `setYsort(bool)` — enables Y-sorting for correct top-down depth ordering. Sprites are sorted by bottom edge each frame. `BACKGROUND` sprites always render first; `STATIC` sprites always render last.
+- **Added** `setBehindOpacity(value)` — sets the opacity applied to an object when it renders on top of the player. Default: `0.5`.
+- **Added** `setOverlapThreshold(value)` — sets the minimum overlap percentage (0.0–1.0) between the player and an object before the opacity effect triggers. Overlap is measured as the intersecting area relative to the smaller of the two bounding boxes. Default: `0.1` (10%).
+- **Improved** Y-sort render loop uses pre-allocated, reusable arrays (`_backgrounds`, `_sortables`) cleared with `.length = 0` each frame to avoid GC pressure from per-frame allocations.
+- **Fixed** drag-suppression now uses a movement threshold (`4px`) instead of `setTimeout`. A tap/click never triggers the dragging state unless the pointer actually moves, so click events are never incorrectly suppressed.
+
+### v1.2.0
 
 - **Fixed** mouse click world-space conversion: click coordinates are now correctly transformed to world space (`offsetX / globalScale + cameraOffset.x`) so hitbox detection is accurate at any zoom level.
 - **Fixed** `InHitbox` to use pure world-space comparison. Previously applied `globalScale` again inside the hitbox check, causing misses at zoom levels other than 1.
-- **Fixed** drag-suppression for click events: `dragging` state is now exposed on the `CanvasScreen` instance so the click handler can correctly suppress spurious clicks that follow a pan gesture.
-- **Fixed** `mouseup` timing: a `setTimeout(..., 0)` ensures the `click` event (which fires after `mouseup`) still sees the dragging flag and is correctly ignored.
 - **Fixed** `lastFrameTime` initialization to `0` so the first frame's FPS comparison does not produce `NaN`.
 - **Fixed** orphaned `context.restore()` in `animate()` that had no matching `context.save()`, which would eventually cause a canvas state stack underflow.
 - **Fixed** pan delta now divided by `globalScale` so panning speed stays consistent at any zoom level.
