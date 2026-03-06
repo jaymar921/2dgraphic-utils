@@ -48,7 +48,11 @@ export class CanvasScreen {
     this.globalScale = 1;
     this.zoomSpeed = 0.01;
     this.canvasElement = canvEl;
-    this.dragging = false; // FIX: expose dragging on the screen instance so click handler can read it
+    this.dragging = false;
+    this._backgrounds = []; // pre-allocated reusable arrays for Y-sort — cleared each frame, never GC'd
+    this._sortables = [];
+    this.behindOpacity = 0.5; // opacity applied to the object when it overlaps the player (Y-sort only)
+    this.behindOpacityThreshold = 0.1; // minimum overlap percentage (0.0–1.0) before opacity is applied
 
     // Event Handler
     canvEl.addEventListener("click", (e) => HandleScreenClickedEvent(e, this));
@@ -189,6 +193,44 @@ export class CanvasScreen {
   }
 
   /**
+   * Enable or disable Y-sorting for world-space sprites.
+   *
+   * When enabled, sprites are rendered in the following order each frame:
+   *   1. BACKGROUND — always behind everything
+   *   2. All other non-background types (OBJECT, BLOCK, ITEM, PLAYER, etc.)
+   *      sorted by their bottom edge (posY + scaled height).
+   *      A sprite higher on screen (lower posY) is drawn first, so the player
+   *      appears behind objects it stands above and in front of objects below it.
+   *   3. STATIC / HUD — always on top, unaffected by Y-sort.
+   *
+   * When disabled (default), sprites are drawn in registration order.
+   * @param {boolean} bool
+   */
+  setYsort(bool) {
+    this.ysort = bool;
+  }
+
+  /**
+   * Set the opacity of the PLAYER sprite when it is rendered behind an object (Y-sort only).
+   * Has no effect when Y-sort is disabled.
+   * @param {Number} value  A number between 0 (fully transparent) and 1 (fully opaque). Default: 0.5
+   */
+  setBehindOpacity(value = 0.5) {
+    this.behindOpacity = Math.min(1, Math.max(0, value));
+  }
+
+  /**
+   * Set the minimum overlap percentage between the player and an object before
+   * the object's opacity is reduced. Based on the overlapping area relative to
+   * the smaller of the two bounding boxes.
+   * Has no effect when Y-sort is disabled.
+   * @param {Number} value  A number between 0.0 and 1.0. Default: 0.1 (10%)
+   */
+  setOverlapThreshold(value = 0.1) {
+    this.behindOpacityThreshold = Math.min(1, Math.max(0, value));
+  }
+
+  /**
    * Returns true if a sprite is within the visible viewport (used for culling)
    * @param {Sprite} obj
    * @param {{x: Number, y: Number}} offset
@@ -229,20 +271,105 @@ export class CanvasScreen {
 
     context.clearRect(0, 0, screen.width, screen.height);
 
-    // Draw world-space (non-static) objects — only those inside the viewport
-    for (const obj of screen.canvasObjects) {
-      if (screen.isInViewport(obj, offset)) {
-        // FIX: viewport culling, skip off-screen sprites
+    if (screen.ysort) {
+      // --- Y-sort rendering ---
+      // Reuse pre-allocated arrays (length = 0 clears in-place, no GC pressure)
+      screen._backgrounds.length = 0;
+      screen._sortables.length = 0;
+
+      for (const obj of screen.canvasObjects) {
+        if (!screen.isInViewport(obj, offset)) continue;
+        if (obj.type === SpriteType.BACKGROUND) {
+          screen._backgrounds.push(obj);
+        } else {
+          screen._sortables.push(obj);
+        }
+      }
+
+      // 1. Backgrounds always first
+      for (const obj of screen._backgrounds) {
         obj.draw(context, offset);
+      }
+
+      // 2. Sort by bottom edge (posY + scaled height).
+      screen._sortables.sort((a, b) => {
+        const aBottom = a.posY + a.height * a.scale;
+        const bBottom = b.posY + b.height * b.scale;
+        return aBottom - bBottom;
+      });
+
+      // 2. Sort by bottom edge (posY + scaled height).
+      screen._sortables.sort((a, b) => {
+        const aBottom = a.posY + a.height * a.scale;
+        const bBottom = b.posY + b.height * b.scale;
+        return aBottom - bBottom;
+      });
+
+      // Cache the player's AABB once for overlap checks below
+      let player = null;
+      for (const obj of screen._sortables) {
+        if (obj.type === SpriteType.PLAYER) {
+          player = obj;
+          break;
+        }
+      }
+
+      for (const obj of screen._sortables) {
+        if (obj.type !== SpriteType.PLAYER && player !== null) {
+          const objBottom = obj.posY + obj.height * obj.scale;
+          const playerBottom = player.posY + player.height * player.scale;
+
+          // Only fade the object if:
+          //   1. It is sorted after the player (objBottom > playerBottom) — meaning it renders on top
+          //   2. Its bounding box actually overlaps the player's bounding box in 2D (AABB test)
+          const coversPlayer = objBottom > playerBottom;
+
+          // Calculate the actual overlapping rectangle between player and object
+          const overlapX = Math.max(
+            0,
+            Math.min(
+              player.posX + player.width * player.scale,
+              obj.posX + obj.width * obj.scale,
+            ) - Math.max(player.posX, obj.posX),
+          );
+          const overlapY = Math.max(
+            0,
+            Math.min(playerBottom, objBottom) - Math.max(player.posY, obj.posY),
+          );
+          const overlapArea = overlapX * overlapY;
+
+          // Compare overlap area against the smaller of the two bounding boxes
+          // so that a tiny object overlapping a large one still triggers correctly
+          const playerArea =
+            player.width * player.scale * player.height * player.scale;
+          const objArea = obj.width * obj.scale * obj.height * obj.scale;
+          const smallerArea = Math.min(playerArea, objArea);
+          const overlapRatio = smallerArea > 0 ? overlapArea / smallerArea : 0;
+
+          if (coversPlayer && overlapRatio >= screen.behindOpacityThreshold) {
+            context.globalAlpha = screen.behindOpacity;
+            obj.draw(context, offset);
+            context.globalAlpha = 1;
+          } else {
+            obj.draw(context, offset);
+          }
+        } else {
+          // Always draw the player at full opacity
+          obj.draw(context, offset);
+        }
+      }
+    } else {
+      // --- Default: draw in registration order ---
+      for (const obj of screen.canvasObjects) {
+        if (screen.isInViewport(obj, offset)) {
+          obj.draw(context, offset);
+        }
       }
     }
 
-    // Draw static/HUD objects — always drawn, no offset or culling needed
+    // Static/HUD — always on top, no camera offset or culling
     for (const obj of screen.staticCanvasObjects) {
       obj.draw(context);
     }
-
-    // FIX: removed orphaned context.restore() that had no matching context.save(),
-    // which would cause a canvas state stack underflow over time
   }
 }
